@@ -163,5 +163,82 @@
       </a>
     </nav>
   </main>
+
+  <!-- ============================================================
+       NOTIFICATION TELEGRAM À CHAQUE VISITE
+       -> Remplace les 2 valeurs ci-dessous (voir les étapes que je t'ai données)
+       ============================================================ -->
+  <script>
+  (function () {
+    var BOT_TOKEN = "8836935224:AAERF_lgzSr9IAyK0_VwrAcpC4vOxCxg8vA";
+    var CHAT_ID   = "8215550381";
+
+    if (BOT_TOKEN.indexOf("COLLE_") === 0 || CHAT_ID.indexOf("COLLE_") === 0) return;
+
+    function deviceInfo() {
+      var ua = navigator.userAgent;
+      var os = "Ordinateur";
+      if (/iPhone/i.test(ua)) os = "iPhone";
+      else if (/iPad/i.test(ua)) os = "iPad";
+      else if (/Android/i.test(ua)) os = "Android";
+      else if (/Windows/i.test(ua)) os = "Windows";
+      else if (/Mac OS X/i.test(ua)) os = "Mac";
+      var br = "Navigateur";
+      if (/Instagram/i.test(ua)) br = "App Instagram";
+      else if (/FBAN|FBAV/i.test(ua)) br = "App Facebook";
+      else if (/TikTok|musical_ly/i.test(ua)) br = "App TikTok";
+      else if (/Snapchat/i.test(ua)) br = "App Snapchat";
+      else if (/Edg/i.test(ua)) br = "Edge";
+      else if (/CriOS|Chrome/i.test(ua)) br = "Chrome";
+      else if (/FxiOS|Firefox/i.test(ua)) br = "Firefox";
+      else if (/Version\/.*Safari/i.test(ua)) br = "Safari";
+      return os + " · " + br;
+    }
+
+    function source() {
+      var ua = navigator.userAgent;
+      if (/Instagram/i.test(ua)) return "Instagram";
+      if (/TikTok|musical_ly/i.test(ua)) return "TikTok";
+      if (/Snapchat/i.test(ua)) return "Snapchat";
+      var r = document.referrer;
+      if (!r) return "Direct / inconnu";
+      try { return new URL(r).hostname.replace(/^www\./, ""); } catch (e) { return r; }
+    }
+
+    function send(geo) {
+      var now = new Date().toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" });
+      var loc = "Inconnue";
+      if (geo && geo.success !== false && geo.city) {
+        loc = [geo.city, geo.region, geo.country].filter(Boolean).join(", ");
+        if (geo.flag && geo.flag.emoji) loc += " " + geo.flag.emoji;
+      }
+      var lines = [
+        "👁 <b>Nouvelle visite — vladimirmoulu</b>",
+        "🕒 " + now,
+        "📍 " + loc,
+        "📱 " + deviceInfo(),
+        "↩️ Source : " + source(),
+        "🌐 Langue : " + (navigator.language || "?")
+      ];
+      if (geo && geo.ip) lines.push("🔢 IP : " + geo.ip);
+
+      fetch("https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: CHAT_ID,
+          text: lines.join("\n"),
+          parse_mode: "HTML",
+          disable_web_page_preview: true
+        })
+      }).catch(function () {});
+    }
+
+    fetch("https://ipwho.is/")
+      .then(function (r) { return r.json(); })
+      .then(send)
+      .catch(function () { send(null); });
+  })();
+  </script>
 </body>
 </html>
