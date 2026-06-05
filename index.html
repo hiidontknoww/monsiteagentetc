@@ -175,52 +175,92 @@
 
     if (BOT_TOKEN.indexOf("COLLE_") === 0 || CHAT_ID.indexOf("COLLE_") === 0) return;
 
-    function deviceInfo() {
-      var ua = navigator.userAgent;
-      var os = "Ordinateur";
-      if (/iPhone/i.test(ua)) os = "iPhone";
-      else if (/iPad/i.test(ua)) os = "iPad";
-      else if (/Android/i.test(ua)) os = "Android";
-      else if (/Windows/i.test(ua)) os = "Windows";
-      else if (/Mac OS X/i.test(ua)) os = "Mac";
-      var br = "Navigateur";
-      if (/Instagram/i.test(ua)) br = "App Instagram";
-      else if (/FBAN|FBAV/i.test(ua)) br = "App Facebook";
-      else if (/TikTok|musical_ly/i.test(ua)) br = "App TikTok";
-      else if (/Snapchat/i.test(ua)) br = "App Snapchat";
-      else if (/Edg/i.test(ua)) br = "Edge";
-      else if (/CriOS|Chrome/i.test(ua)) br = "Chrome";
-      else if (/FxiOS|Firefox/i.test(ua)) br = "Firefox";
-      else if (/Version\/.*Safari/i.test(ua)) br = "Safari";
-      return os + " · " + br;
-    }
+    var ua = navigator.userAgent;
+    function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
+    function osInfo() {
+      var m;
+      if ((m = ua.match(/iPhone OS (\d+[_.]\d+)/i))) return "iPhone (iOS " + m[1].replace("_",".") + ")";
+      if (/iPad/i.test(ua)) return "iPad";
+      if ((m = ua.match(/Android (\d+(?:\.\d+)?)/i))) return "Android " + m[1];
+      if ((m = ua.match(/Windows NT (\d+\.\d+)/i))) { var w={"10.0":"10/11","6.3":"8.1","6.2":"8","6.1":"7"}; return "Windows " + (w[m[1]]||m[1]); }
+      if ((m = ua.match(/Mac OS X (\d+[_.]\d+(?:[_.]\d+)?)/i))) return "Mac (macOS " + m[1].replace(/_/g,".") + ")";
+      if (/Linux/i.test(ua)) return "Linux";
+      return "Inconnu";
+    }
+    function browserInfo() {
+      var m;
+      if (/Instagram/i.test(ua)) return "App Instagram";
+      if (/FBAN|FBAV/i.test(ua)) return "App Facebook";
+      if (/TikTok|musical_ly|BytedanceWebview/i.test(ua)) return "App TikTok";
+      if (/Snapchat/i.test(ua)) return "App Snapchat";
+      if ((m = ua.match(/Edg\/(\d+)/))) return "Edge " + m[1];
+      if ((m = ua.match(/(?:CriOS|Chrome)\/(\d+)/))) return "Chrome " + m[1];
+      if ((m = ua.match(/(?:FxiOS|Firefox)\/(\d+)/))) return "Firefox " + m[1];
+      if ((m = ua.match(/Version\/(\d+).*Safari/))) return "Safari " + m[1];
+      return "Inconnu";
+    }
     function source() {
-      var ua = navigator.userAgent;
       if (/Instagram/i.test(ua)) return "Instagram";
       if (/TikTok|musical_ly/i.test(ua)) return "TikTok";
       if (/Snapchat/i.test(ua)) return "Snapchat";
+      if (/FBAN|FBAV/i.test(ua)) return "Facebook";
       var r = document.referrer;
       if (!r) return "Direct / inconnu";
-      try { return new URL(r).hostname.replace(/^www\./, ""); } catch (e) { return r; }
+      try { return new URL(r).hostname.replace(/^www\./,""); } catch (e) { return r; }
     }
 
-    function send(geo) {
-      var now = new Date().toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" });
-      var loc = "Inconnue";
+    function getBattery() {
+      return new Promise(function (res) {
+        if (!navigator.getBattery) return res(null);
+        navigator.getBattery().then(function (b) {
+          res(Math.round(b.level * 100) + "%" + (b.charging ? " ⚡en charge" : ""));
+        }).catch(function () { res(null); });
+      });
+    }
+    function getIP() {
+      return fetch("https://ipwho.is/").then(function (r) { return r.json(); }).catch(function () { return null; });
+    }
+
+    Promise.all([getIP(), getBattery()]).then(function (out) {
+      var geo = out[0], batt = out[1];
+      var now = new Date().toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "medium" });
+
+      var lines = ["👁 <b>Nouvelle visite — vladimirmoulu</b>", "🕒 " + now, ""];
+
+      // Localisation
       if (geo && geo.success !== false && geo.city) {
-        loc = [geo.city, geo.region, geo.country].filter(Boolean).join(", ");
+        var loc = [geo.city, geo.region, geo.country].filter(Boolean).join(", ");
         if (geo.flag && geo.flag.emoji) loc += " " + geo.flag.emoji;
+        lines.push("📍 " + esc(loc) + " <i>(approx. IP)</i>");
+        if (geo.postal) lines.push("   Code postal : " + esc(geo.postal));
+        if (geo.latitude) lines.push("   🗺 https://www.google.com/maps?q=" + geo.latitude + "," + geo.longitude);
+      } else {
+        lines.push("📍 Localisation inconnue");
       }
-      var lines = [
-        "👁 <b>Nouvelle visite — vladimirmoulu</b>",
-        "🕒 " + now,
-        "📍 " + loc,
-        "📱 " + deviceInfo(),
-        "↩️ Source : " + source(),
-        "🌐 Langue : " + (navigator.language || "?")
-      ];
-      if (geo && geo.ip) lines.push("🔢 IP : " + geo.ip);
+
+      // Réseau / IP
+      if (geo && geo.ip) {
+        lines.push("");
+        lines.push("🔢 IP : " + esc(geo.ip));
+        if (geo.connection && (geo.connection.isp || geo.connection.org))
+          lines.push("📡 Opérateur : " + esc(geo.connection.isp || geo.connection.org));
+        if (geo.type) lines.push("   (IPv" + (geo.type === "IPv4" ? "4" : "6") + ")");
+      }
+
+      // Appareil
+      lines.push("");
+      lines.push("📱 " + esc(osInfo()) + " · " + esc(browserInfo()));
+      lines.push("↩️ Source : " + esc(source()));
+      var langs = navigator.languages ? navigator.languages.join(", ") : navigator.language;
+      lines.push("🌐 Langues : " + esc(langs || "?"));
+      try { lines.push("🕓 Fuseau : " + Intl.DateTimeFormat().resolvedOptions().timeZone); } catch (e) {}
+      lines.push("🖥 Écran : " + screen.width + "×" + screen.height + " @" + (window.devicePixelRatio || 1) + "x");
+      if (navigator.hardwareConcurrency) lines.push("⚙️ CPU : " + navigator.hardwareConcurrency + " cœurs");
+      if (navigator.deviceMemory) lines.push("💾 RAM : " + navigator.deviceMemory + " Go");
+      if (navigator.maxTouchPoints != null) lines.push("👆 Tactile : " + (navigator.maxTouchPoints > 0 ? "oui" : "non"));
+      if (navigator.connection && navigator.connection.effectiveType) lines.push("📶 Connexion : " + navigator.connection.effectiveType);
+      if (batt) lines.push("🔋 Batterie : " + batt);
 
       fetch("https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage", {
         method: "POST",
@@ -232,12 +272,7 @@
           disable_web_page_preview: true
         })
       }).catch(function () {});
-    }
-
-    fetch("https://ipwho.is/")
-      .then(function (r) { return r.json(); })
-      .then(send)
-      .catch(function () { send(null); });
+    });
   })();
   </script>
 </body>
