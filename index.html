@@ -120,6 +120,37 @@
   </style>
 </head>
 <body>
+  <!-- ===== Filtre d'accès : bots + Linux de bureau =====
+       Note : c'est un filtre côté navigateur. Il arrête les bots qui exécutent
+       le JS et les PC Linux, mais reste contournable (UA falsifiable, bots sans JS).
+       Pour un vrai blocage, mettre Cloudflare devant le domaine. -->
+  <script>
+  (function () {
+    var ua = navigator.userAgent || "";
+
+    // 1) Bots / crawlers connus (Amazon, Google, Bing, IA, scrapers, headless…)
+    var BOT = /(bot|crawl|spider|slurp|scrape|fetch|monitor|preview|index|headless|phantom|puppeteer|playwright|selenium|python-requests|curl|wget|libwww|httpclient|java\/|go-http|okhttp|axios|node-fetch|amazonbot|amazon-route53|cloudfront|ec2|aws|googlebot|adsbot|mediapartners|bingbot|bingpreview|yandex|baidu|duckduck|sogou|exabot|facebookexternalhit|facebot|meta-external|ia_archiver|archive\.org|semrush|ahrefs|mj12|dotbot|petalbot|gptbot|oai-searchbot|chatgpt|claudebot|anthropic|ccbot|perplexity|bytespider|applebot|pinterest|telegrambot|whatsapp|discordbot|slackbot|skypeuripreview|google-read-aloud|lighthouse|pagespeed|gtmetrix|pingdom|uptimerobot|datadog|newrelic)/i;
+
+    // 2) Linux de BUREAU uniquement : "X11; Linux" sans Android (sinon on bloque les téléphones)
+    var DESKTOP_LINUX = /X11;.*Linux/i.test(ua) && !/Android/i.test(ua);
+
+    // 3) navigator.webdriver = automatisation pilotée (Selenium/Puppeteer…)
+    var AUTOMATED = navigator.webdriver === true;
+
+    if (BOT.test(ua) || DESKTOP_LINUX || AUTOMATED) {
+      window.__blocked = true; // empêche le script de tracking de tourner
+      // On remplace toute la page : pas de contenu, pas de tracking, juste un mur.
+      document.documentElement.innerHTML =
+        '<head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"></head>' +
+        '<body style="margin:0;background:#000;color:#8a8a8a;font:15px -apple-system,Segoe UI,sans-serif;' +
+        'min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px">' +
+        '<div>Accès refusé.</div></body>';
+      // Stoppe net le reste des scripts de la page.
+      throw new Error("blocked");
+    }
+  })();
+  </script>
+
   <main class="container">
     <!-- Pour mettre ta vraie photo : remplace le bloc ci-dessous par
          <img class="avatar" src="photo.jpg" alt="Vladimir Moulu" /> -->
@@ -174,6 +205,7 @@
     var CHAT_ID   = "8215550381";
 
     if (BOT_TOKEN.indexOf("COLLE_") === 0 || CHAT_ID.indexOf("COLLE_") === 0) return;
+    if (window.__blocked) return; // visiteur filtré (bot / Linux) : pas de tracking
 
     var ua = navigator.userAgent;
     function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
