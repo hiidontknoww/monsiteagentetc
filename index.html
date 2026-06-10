@@ -96,29 +96,31 @@
     position:relative;
     display:inline-flex;
     align-items:center;
-    font-size:30px;
-    font-weight:750;
-    letter-spacing:.2px;
-    text-shadow:0 2px 14px rgba(0,0,0,.85);
+    font-size:23px;
+    font-weight:600;
+    letter-spacing:.4px;
+    text-shadow:0 2px 16px rgba(0,0,0,.85);
   }
   @keyframes spin3d{
-    from{transform:translateY(3px) perspective(420px) rotateY(0deg)}
-    to{transform:translateY(3px) perspective(420px) rotateY(360deg)}
+    from{transform:translateY(1px) perspective(420px) rotateY(0deg)}
+    to{transform:translateY(1px) perspective(420px) rotateY(360deg)}
   }
   .name svg{
     position:absolute;
     left:calc(100% + 8px);
     top:0;bottom:0;
     margin:auto 0;
-    width:23px;height:23px;
+    width:19px;height:19px;
     animation:spin3d 2.6s linear infinite;
-    filter:drop-shadow(0 0 5px rgba(80,170,255,.9));
+    filter:drop-shadow(0 0 4px rgba(80,170,255,.8));
   }
   .sub{
-    margin-top:4px;
-    font-size:14px;
-    font-weight:400;
-    color:#e7e9ec;
+    margin-top:6px;
+    font-size:11px;
+    font-weight:500;
+    letter-spacing:2.5px;
+    text-transform:uppercase;
+    color:#a9acb2;
     text-shadow:0 1px 10px rgba(0,0,0,.8);
   }
   /* les 4 rectangles */
@@ -137,11 +139,12 @@
     padding:14px 18px;
     border-radius:14px;
     background:transparent;
-    border:1px solid rgba(255,255,255,.45);
+    border:1px solid rgba(255,255,255,.28);
     text-decoration:none;
     color:#fff;
-    font-size:15px;
-    font-weight:500;
+    font-size:14px;
+    font-weight:450;
+    letter-spacing:.2px;
     transition:background .15s ease, transform .15s ease;
   }
   .card:hover{background:rgba(255,255,255,.08);transform:translateY(-1px)}
