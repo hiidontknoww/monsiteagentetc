@@ -82,6 +82,29 @@
     pointer-events:none;
     z-index:1;
   }
+  /* vraie fumée animée (texture de bruit qui dérive) par-dessus le haut */
+  .smoke{
+    position:absolute;
+    top:-2px;left:0;right:0;
+    height:70%;
+    z-index:1;
+    pointer-events:none;
+    opacity:1;
+    filter:blur(3px);
+    background-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='320'%20height='320'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.011%200.018'%20numOctaves='3'%20seed='11'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='matrix'%20values='0%200%200%200%200%200%200%200%200%200%200%200%200%200%200%201.4%200%200%200%20-0.12'/%3E%3C/filter%3E%3Crect%20width='320'%20height='320'%20filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat:repeat;
+    background-size:165% 165%;
+    -webkit-mask:linear-gradient(to bottom,#000 0%,#000 34%,transparent 100%);
+    mask:linear-gradient(to bottom,#000 0%,#000 34%,transparent 100%);
+    animation:smokeDrift 11s ease-in-out infinite;
+  }
+  @keyframes smokeDrift{
+    0%  {background-position:0% 0%}
+    25% {background-position:42% 16%}
+    50% {background-position:80% 34%}
+    75% {background-position:38% 20%}
+    100%{background-position:0% 0%}
+  }
   /* fondu fumée : le bas de l'image se dissout dans le noir, sans trait */
   .photo::after{
     content:"";
@@ -169,6 +192,7 @@
   <div class="wrap">
     <div class="photo">
       <img src="vlad-cover.png" alt="vlad">
+      <div class="smoke"></div>
       <div class="pname">
         <div class="name">
           vlad
