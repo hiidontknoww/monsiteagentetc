@@ -34,15 +34,7 @@
     padding:24px 16px;
     position:relative;
   }
-  @keyframes float{
-    0%,100%{transform:translateY(0)}
-    50%{transform:translateY(-12px)}
-  }
-  @keyframes spin3d{
-    from{transform:perspective(420px) rotateY(0deg)}
-    to{transform:perspective(420px) rotateY(360deg)}
-  }
-  /* panneau image + noir, regroupé, arrondi, qui flotte */
+  /* panneau image + noir, regroupé, arrondi */
   .wrap{
     width:100%;
     max-width:566px;
@@ -52,7 +44,6 @@
     border-radius:26px;
     overflow:hidden;
     box-shadow:0 22px 60px rgba(0,0,0,.65);
-    animation:float 5s ease-in-out infinite;
   }
   /* prolongement noir sous la photo, coins arrondis via le panneau */
   .below{
@@ -110,14 +101,21 @@
     letter-spacing:.2px;
     text-shadow:0 2px 14px rgba(0,0,0,.85);
   }
+  @keyframes aura{
+    0%,100%{box-shadow:0 0 4px 1px rgba(0,149,246,.75),
+                       0 0 9px 2px rgba(0,149,246,.4)}
+    50%{box-shadow:0 0 9px 2px rgba(0,149,246,1),
+                   0 0 20px 6px rgba(0,149,246,.6)}
+  }
   .name svg{
     position:absolute;
     left:calc(100% + 8px);
     top:0;bottom:0;
     margin:auto 0;
-    width:24px;height:24px;
-    animation:spin3d 2.6s linear infinite;
-    filter:drop-shadow(0 0 5px rgba(80,170,255,.9));
+    transform:translateY(3px);
+    width:22px;height:22px;
+    border-radius:50%;
+    animation:aura 1.8s ease-in-out infinite;
   }
   .sub{
     margin-top:4px;
@@ -162,8 +160,8 @@
         <div class="name">
           vlad
           <svg viewBox="0 0 24 24" aria-label="Vérifié">
-            <path fill="#1d9bf0" d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34z"/>
-            <path fill="#fff" d="M9.8 17.3l-4.45-4.45 1.4-1.4 3.05 3.05 6.45-6.45 1.4 1.4z"/>
+            <circle cx="12" cy="12" r="12" fill="#0095F6"/>
+            <path d="M6.9 12.3 10.4 15.8 17.1 8.5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </div>
         <div class="sub">Mannequin</div>
