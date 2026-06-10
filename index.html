@@ -69,6 +69,19 @@
     object-fit:cover;
     display:block;
   }
+  /* fondu fumée en haut : pas de coupe nette, on ne voit pas la délimitation */
+  .photo::before{
+    content:"";
+    position:absolute;
+    left:0;right:0;top:-1px;
+    height:24%;
+    background:linear-gradient(to bottom,
+      rgba(0,0,0,.82) 0%,
+      rgba(0,0,0,.38) 38%,
+      rgba(0,0,0,0) 100%);
+    pointer-events:none;
+    z-index:1;
+  }
   /* fondu fumée : le bas de l'image se dissout dans le noir, sans trait */
   .photo::after{
     content:"";
