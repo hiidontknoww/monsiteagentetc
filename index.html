@@ -83,19 +83,19 @@
     pointer-events:none;
     z-index:1;
   }
-  /* vraie fumée animée (texture de bruit qui dérive) par-dessus le haut */
+  /* vraie fumée : turbulence SVG qui bouillonne sur place et monte doucement */
   .smoke{
     position:absolute;
     top:-2px;left:0;right:0;
-    height:70%;
+    height:80%;
     z-index:1;
     pointer-events:none;
     overflow:hidden;
-    filter:blur(3px);
-    -webkit-mask:linear-gradient(to bottom,#000 0%,#000 34%,transparent 100%);
-    mask:linear-gradient(to bottom,#000 0%,#000 34%,transparent 100%);
+    filter:blur(4px);
+    -webkit-mask:linear-gradient(to bottom,#000 0%,#000 38%,transparent 100%);
+    mask:linear-gradient(to bottom,#000 0%,#000 38%,transparent 100%);
   }
-  /* 2 couches de bruit tuilé qui dérivent en continu (boucle seamless, jamais d'arrêt) */
+  /* 2 nappes de bruit tuilé qui dérivent en continu, vitesse constante, boucle sans couture */
   .smoke::before,.smoke::after{
     content:"";
     position:absolute;
@@ -105,17 +105,18 @@
     will-change:transform;
   }
   .smoke::before{
-    background-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='320'%20height='320'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.011%200.018'%20numOctaves='3'%20seed='11'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='matrix'%20values='0%200%200%200%200%200%200%200%200%200%200%200%200%200%200%201.4%200%200%200%20-0.12'/%3E%3C/filter%3E%3Crect%20width='320'%20height='320'%20filter='url(%23n)'/%3E%3C/svg%3E");
+    background-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='340'%20height='340'%3E%3Cfilter%20id='n'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.011%200.017'%20numOctaves='4'%20seed='11'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='matrix'%20values='0%200%200%200%200%200%200%200%200%200%200%200%200%200%200%201.5%200%200%200%20-0.06'/%3E%3C/filter%3E%3Crect%20width='340'%20height='340'%20filter='url(%23n)'/%3E%3C/svg%3E");
     background-size:33.333% 33.333%;
-    opacity:.95;
-    animation:smokeA 26s linear infinite;
+    opacity:1;
+    animation:smokeA 30s linear infinite;
   }
   .smoke::after{
-    background-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='340'%20height='340'%3E%3Cfilter%20id='m'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.009%200.015'%20numOctaves='3'%20seed='4'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='matrix'%20values='0%200%200%200%200%200%200%200%200%200%200%200%200%200%200%201.3%200%200%200%20-0.18'/%3E%3C/filter%3E%3Crect%20width='340'%20height='340'%20filter='url(%23m)'/%3E%3C/svg%3E");
+    background-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='360'%20height='360'%3E%3Cfilter%20id='m'%3E%3CfeTurbulence%20type='fractalNoise'%20baseFrequency='0.008%200.013'%20numOctaves='3'%20seed='4'%20stitchTiles='stitch'/%3E%3CfeColorMatrix%20type='matrix'%20values='0%200%200%200%200%200%200%200%200%200%200%200%200%200%200%201.4%200%200%200%20-0.12'/%3E%3C/filter%3E%3Crect%20width='360'%20height='360'%20filter='url(%23m)'/%3E%3C/svg%3E");
     background-size:25% 25%;
-    opacity:.6;
-    animation:smokeB 40s linear infinite;
+    opacity:.72;
+    animation:smokeB 46s linear infinite;
   }
+  /* dérive constante, sens unique, sans couture (multiple du motif tuilé) */
   @keyframes smokeA{
     from{transform:translate3d(0,0,0)}
     to  {transform:translate3d(-33.333%,-33.333%,0)}
