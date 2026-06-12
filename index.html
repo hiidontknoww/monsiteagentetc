@@ -43,14 +43,6 @@
     align-items:center;
     background:#000;
   }
-  /* zone texte centrée, là où était l'image */
-  .below{
-    width:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    background:#000;
-  }
   /* nom + Mannequin */
   .pname{
     position:relative;
@@ -60,30 +52,12 @@
     flex-direction:column;
     align-items:center;
   }
-  /* nom centré ; la certif est en absolu pour ne pas décaler "vlad" */
+  /* nom centré */
   .name{
-    position:relative;
-    display:inline-flex;
-    align-items:center;
     font-size:23px;
     font-weight:600;
     letter-spacing:.4px;
     text-shadow:0 2px 16px rgba(0,0,0,.85);
-  }
-  /* badge : simple lumière qui clignote */
-  .cert{
-    position:absolute;
-    left:calc(100% + 7px);
-    top:0;bottom:0;
-    margin:auto 0;
-    width:17px;height:17px;
-    transform:translateY(2px);
-    animation:certGlow 4.5s ease-in-out infinite;
-  }
-  .cert svg{width:100%;height:100%;display:block}
-  @keyframes certGlow{
-    0%,100%{ filter:drop-shadow(0 0 2px rgba(29,155,240,.4)); }
-    50%    { filter:drop-shadow(0 0 6px rgba(56,170,255,.8)); }
   }
   .sub{
     margin-top:3px;
@@ -91,18 +65,7 @@
     font-weight:600;
     letter-spacing:1.8px;
     text-transform:uppercase;
-    background:linear-gradient(100deg,
-      #b6b9bf 0%,
-      #b6b9bf 40%,
-      #ffffff 50%,
-      #b6b9bf 60%,
-      #b6b9bf 100%);
-    background-size:250% 100%;
-    -webkit-background-clip:text;
-    background-clip:text;
-    -webkit-text-fill-color:transparent;
-    color:transparent;
-    animation:shine 3.2s linear infinite;
+    color:#b6b9bf;
   }
   /* bloc texte sur 2 lignes (toutes les cartes) */
   .ctext{
@@ -129,24 +92,7 @@
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
-    /* gris discret traversé par une vague de lumière blanche */
-    background:linear-gradient(100deg,
-      #8d9097 0%,
-      #8d9097 40%,
-      #ffffff 50%,
-      #8d9097 60%,
-      #8d9097 100%);
-    background-size:250% 100%;
-    -webkit-background-clip:text;
-    background-clip:text;
-    -webkit-text-fill-color:transparent;
-    color:transparent;
-    animation:shine 3.2s linear infinite;
-  }
-  /* vague de lumière blanche qui traverse le texte, en boucle */
-  @keyframes shine{
-    from{ background-position:200% 0; }
-    to{ background-position:-200% 0; }
+    color:#8d9097;
   }
   /* les 4 rectangles */
   .links{
@@ -185,7 +131,7 @@
     to  {opacity:1;translate:0 0;filter:blur(0)}
   }
   .name{animation:riseIn .85s .05s both cubic-bezier(.2,.7,.2,1)}
-  .sub{animation:shine 3.2s linear infinite, riseIn .85s .2s both cubic-bezier(.2,.7,.2,1)}
+  .sub{animation:riseIn .85s .2s both cubic-bezier(.2,.7,.2,1)}
   .links .card{animation:riseIn .8s both cubic-bezier(.2,.7,.2,1)}
   .links .card:nth-child(1){animation-delay:.32s}
   .links .card:nth-child(2){animation-delay:.4s}
@@ -200,13 +146,10 @@
 </head>
 <body>
   <div class="wrap">
-    <div class="below">
-      <div class="pname">
-        <div class="name">
-          Vladimir
-        </div>
-        <div class="sub">Mannequin</div>
-      </div>
+    <div class="pname">
+      <div class="name">Vladimir</div>
+      <div class="sub">Mannequin</div>
+    </div>
 
     <div class="links">
       <a class="card" href="https://elitecrypto.lat" target="_blank" rel="noreferrer">
@@ -237,7 +180,6 @@
           <span class="csub">Compte personnel</span>
         </span>
       </a>
-    </div>
     </div>
   </div>
 <script>
