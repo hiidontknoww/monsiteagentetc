@@ -66,10 +66,11 @@
   }
   .ctext{
     flex:1 1 auto;
-    display:flex;
-    flex-direction:column;
-    gap:2px;
-    line-height:1.25;
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) auto;
+    align-items:center;
+    gap:10px;
+    line-height:1.2;
     min-width:0;
   }
   .ctext .ctitle{
@@ -89,6 +90,8 @@
     overflow:hidden;
     text-overflow:ellipsis;
     color:#8d9097;
+    padding-left:10px;
+    border-left:1px solid rgba(0,0,0,.12);
   }
   .links{
     width:100%;
@@ -100,7 +103,7 @@
   .card{
     display:flex;
     align-items:center;
-    gap:14px;
+    gap:12px;
     width:100%;
     padding:14px 18px;
     border-radius:14px;
@@ -119,6 +122,13 @@
   .card:hover .ic{transform:scale(1.1)}
   .card:active{transform:translateY(0) scale(.992)}
   .card:focus-visible{outline:none;border-color:rgba(0,0,0,.55);background:rgba(0,0,0,.05)}
+
+  @media (max-width:420px){
+    .card{padding:14px 15px;gap:10px}
+    .ctext{gap:8px}
+    .ctext .ctitle{font-size:13px}
+    .ctext .csub{font-size:9px;padding-left:8px}
+  }
 
   @keyframes riseIn{
     from{opacity:0;translate:0 10px;filter:blur(7px)}
