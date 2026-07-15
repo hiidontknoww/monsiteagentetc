@@ -24,8 +24,12 @@
   }
   html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#fff}
   body{
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     color:#111;
+    font-synthesis:none;
+    text-rendering:optimizeLegibility;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
     height:100vh;
     background:#fff;
     display:flex;
@@ -36,7 +40,7 @@
   }
   .wrap{
     width:100%;
-    max-width:570px;
+    max-width:540px;
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -45,7 +49,7 @@
   .pname{
     position:relative;
     z-index:2;
-    margin-bottom:34px;
+    margin-bottom:30px;
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -53,90 +57,109 @@
   .name{
     font-size:23px;
     font-weight:600;
-    letter-spacing:.4px;
-    text-shadow:0 2px 16px rgba(0,0,0,.08);
+    letter-spacing:-.4px;
+    line-height:1.1;
+    text-shadow:0 2px 14px rgba(0,0,0,.045);
   }
   .sub{
-    margin-top:3px;
-    font-size:9px;
+    margin-top:5px;
+    font-size:8.5px;
     font-weight:600;
-    letter-spacing:1.8px;
+    letter-spacing:2px;
     text-transform:uppercase;
-    color:#5a5d63;
+    color:#777a80;
   }
   .ctext{
     flex:1 1 auto;
     display:grid;
     grid-template-columns:minmax(0, 1fr) auto;
     align-items:center;
-    gap:10px;
+    gap:9px;
     line-height:1.2;
     min-width:0;
   }
   .ctext .ctitle{
-    font-size:14px;
-    font-weight:500;
-    color:#111;
+    font-size:13px;
+    font-weight:560;
+    letter-spacing:-.08px;
+    color:#18181a;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
   }
   .ctext .csub{
     font-size:10px;
-    letter-spacing:.3px;
+    letter-spacing:.05px;
     text-transform:capitalize;
-    font-weight:600;
+    font-weight:500;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
-    color:#8d9097;
-    padding-left:10px;
-    border-left:1px solid rgba(0,0,0,.12);
+    color:#8a8d93;
+    padding-left:9px;
+    border-left:1px solid rgba(0,0,0,.085);
   }
   .links{
     width:100%;
     margin-top:4px;
     display:flex;
     flex-direction:column;
-    gap:12px;
+    gap:10px;
   }
   .card{
     display:flex;
     align-items:center;
-    gap:12px;
+    gap:10px;
     width:100%;
-    padding:14px 18px;
-    border-radius:14px;
+    padding:11px 14px;
+    border-radius:13px;
     background:transparent;
-    border:1px solid rgba(0,0,0,.16);
+    border:1px solid rgba(0,0,0,.105);
     text-decoration:none;
     color:#111;
     font-size:14px;
     font-weight:450;
     letter-spacing:.2px;
-    transition:background .15s ease, border-color .15s ease, transform .15s ease;
+    box-shadow:0 1px 1px rgba(0,0,0,.018);
+    transition:background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
   }
-  .card:hover{background:rgba(0,0,0,.04);border-color:rgba(0,0,0,.28);transform:translateY(-1px)}
-  .card .ic{width:24px;height:24px;flex:0 0 auto;display:inline-flex;transition:transform .25s cubic-bezier(.2,.7,.2,1)}
-  .card .ic svg{width:100%;height:100%}
-  .card:hover .ic{transform:scale(1.1)}
+  .card:hover{background:rgba(0,0,0,.018);border-color:rgba(0,0,0,.17);box-shadow:0 4px 14px rgba(0,0,0,.04);transform:translateY(-1px)}
+  .card .ic{
+    width:30px;
+    height:30px;
+    flex:0 0 30px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:10px;
+    background:transparent;
+    border:none;
+    color:#29292c;
+    transition:transform .22s cubic-bezier(.2,.7,.2,1),color .18s ease;
+  }
+  .card .ic svg{width:19px;height:19px;stroke:currentColor}
+  .card:hover .ic{transform:scale(1.045);color:#111}
   .card:active{transform:translateY(0) scale(.992)}
-  .card:focus-visible{outline:none;border-color:rgba(0,0,0,.55);background:rgba(0,0,0,.05)}
+  .card:focus-visible{outline:2px solid rgba(0,0,0,.28);outline-offset:2px;border-color:transparent;background:rgba(0,0,0,.018)}
 
   @media (max-width:420px){
-    .card{padding:14px 15px;gap:10px}
-    .ctext{gap:8px}
-    .ctext .ctitle{font-size:13px}
-    .ctext .csub{font-size:9px;padding-left:8px}
+    .pname{margin-bottom:26px}
+    .links{gap:9px}
+    .card{padding:10px 11px;gap:8px}
+    .ctext{gap:7px}
+    .ctext .ctitle{font-size:12.5px}
+    .ctext .csub{font-size:9.25px;padding-left:7px}
+    .card .ic{width:28px;height:28px;flex-basis:28px}
+    .card .ic svg{width:18px;height:18px}
   }
 
   @keyframes riseIn{
     from{opacity:0;translate:0 10px;filter:blur(7px)}
     to  {opacity:1;translate:0 0;filter:blur(0)}
   }
-  .name{animation:riseIn .85s .05s both cubic-bezier(.2,.7,.2,1)}
-  .sub{animation:riseIn .85s .2s both cubic-bezier(.2,.7,.2,1)}
-  .links .card{animation:riseIn .8s both cubic-bezier(.2,.7,.2,1)}
+  .name{animation:riseIn .75s .05s both cubic-bezier(.2,.7,.2,1)}
+  .sub{animation:riseIn .75s .16s both cubic-bezier(.2,.7,.2,1)}
+  .links .card{animation:riseIn .7s both cubic-bezier(.2,.7,.2,1)}
   .links .card:nth-child(1){animation-delay:.32s}
   .links .card:nth-child(2){animation-delay:.4s}
   .links .card:nth-child(3){animation-delay:.48s}
@@ -197,10 +220,10 @@
         </span>
       </a>
 
-      <a class="card" href="https://www.instagram.com/vladimirmoulu" target="_blank" rel="noreferrer">
+      <a class="card" href="https://www.instagram.com/ttqjr" target="_blank" rel="noreferrer">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"></rect><circle cx="12" cy="12" r="4.4"></circle><circle cx="17.7" cy="6.3" r="1.3" fill="#111" stroke="none"></circle></svg></span>
         <span class="ctext">
-          <span class="ctitle">@vladimirmoulu</span>
+          <span class="ctitle">@ttqjr</span>
           <span class="csub">Compte personnel</span>
         </span>
       </a>
