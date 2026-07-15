@@ -22,16 +22,16 @@
     -webkit-user-drag:none;user-drag:none;
     pointer-events:none;
   }
-  html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#fff}
+  html,body{height:100%;overflow:hidden;overscroll-behavior:none;background:#fefefe}
   body{
     font-family:Inter,-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    color:#111;
+    color:#151515;
     font-synthesis:none;
     text-rendering:optimizeLegibility;
     -webkit-font-smoothing:antialiased;
     -moz-osx-font-smoothing:grayscale;
     height:100vh;
-    background:#fff;
+    background:#fefefe;
     display:flex;
     justify-content:center;
     align-items:center;
@@ -40,117 +40,117 @@
   }
   .wrap{
     width:100%;
-    max-width:540px;
+    max-width:520px;
     display:flex;
     flex-direction:column;
     align-items:center;
-    background:#fff;
+    background:transparent;
   }
   .pname{
     position:relative;
     z-index:2;
-    margin-bottom:30px;
+    margin-bottom:36px;
     display:flex;
     flex-direction:column;
     align-items:center;
   }
   .name{
-    font-size:23px;
-    font-weight:600;
-    letter-spacing:-.4px;
+    font-size:25px;
+    font-weight:500;
+    letter-spacing:-.65px;
     line-height:1.1;
-    text-shadow:0 2px 14px rgba(0,0,0,.045);
+    text-shadow:none;
   }
   .sub{
-    margin-top:5px;
-    font-size:8.5px;
-    font-weight:600;
-    letter-spacing:2px;
+    margin-top:7px;
+    font-size:8px;
+    font-weight:550;
+    letter-spacing:2.8px;
     text-transform:uppercase;
-    color:#777a80;
+    color:#8b8b8f;
   }
   .ctext{
     flex:1 1 auto;
     display:grid;
     grid-template-columns:minmax(0, 1fr) auto;
     align-items:center;
-    gap:9px;
+    gap:12px;
     line-height:1.2;
     min-width:0;
   }
   .ctext .ctitle{
-    font-size:13px;
-    font-weight:560;
-    letter-spacing:-.08px;
-    color:#18181a;
+    font-size:12.75px;
+    font-weight:540;
+    letter-spacing:-.04px;
+    color:#1b1b1d;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
   }
   .ctext .csub{
-    font-size:10px;
-    letter-spacing:.05px;
-    text-transform:capitalize;
-    font-weight:500;
+    font-size:8.5px;
+    letter-spacing:.65px;
+    text-transform:uppercase;
+    font-weight:550;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
-    color:#8a8d93;
-    padding-left:9px;
-    border-left:1px solid rgba(0,0,0,.085);
+    color:#96969b;
+    padding-left:12px;
+    border-left:1px solid rgba(0,0,0,.07);
   }
   .links{
     width:100%;
-    margin-top:4px;
+    margin-top:0;
     display:flex;
     flex-direction:column;
-    gap:10px;
+    gap:9px;
   }
   .card{
     display:flex;
     align-items:center;
-    gap:10px;
+    gap:11px;
     width:100%;
-    padding:11px 14px;
-    border-radius:13px;
-    background:transparent;
-    border:1px solid rgba(0,0,0,.105);
+    padding:13px 16px;
+    border-radius:12px;
+    background:rgba(255,255,255,.72);
+    border:1px solid rgba(0,0,0,.075);
     text-decoration:none;
     color:#111;
     font-size:14px;
     font-weight:450;
     letter-spacing:.2px;
-    box-shadow:0 1px 1px rgba(0,0,0,.018);
-    transition:background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    box-shadow:0 1px 0 rgba(0,0,0,.012);
+    transition:background .22s ease, border-color .22s ease, box-shadow .22s ease, transform .22s ease;
   }
-  .card:hover{background:rgba(0,0,0,.018);border-color:rgba(0,0,0,.17);box-shadow:0 4px 14px rgba(0,0,0,.04);transform:translateY(-1px)}
+  .card:hover{background:#fff;border-color:rgba(0,0,0,.13);box-shadow:0 8px 28px rgba(0,0,0,.035);transform:translateY(-1px)}
   .card .ic{
-    width:30px;
-    height:30px;
-    flex:0 0 30px;
+    width:24px;
+    height:24px;
+    flex:0 0 24px;
     display:inline-flex;
     align-items:center;
     justify-content:center;
     border-radius:10px;
     background:transparent;
     border:none;
-    color:#29292c;
+    color:#333336;
     transition:transform .22s cubic-bezier(.2,.7,.2,1),color .18s ease;
   }
-  .card .ic svg{width:19px;height:19px;stroke:currentColor}
-  .card:hover .ic{transform:scale(1.045);color:#111}
-  .card:active{transform:translateY(0) scale(.992)}
+  .card .ic svg{width:17px;height:17px;stroke:currentColor;stroke-width:1.65}
+  .card:hover .ic{transform:scale(1.035);color:#111}
+  .card:active{transform:translateY(0) scale(.995)}
   .card:focus-visible{outline:2px solid rgba(0,0,0,.28);outline-offset:2px;border-color:transparent;background:rgba(0,0,0,.018)}
 
   @media (max-width:420px){
-    .pname{margin-bottom:26px}
-    .links{gap:9px}
-    .card{padding:10px 11px;gap:8px}
-    .ctext{gap:7px}
-    .ctext .ctitle{font-size:12.5px}
-    .ctext .csub{font-size:9.25px;padding-left:7px}
-    .card .ic{width:28px;height:28px;flex-basis:28px}
-    .card .ic svg{width:18px;height:18px}
+    .pname{margin-bottom:30px}
+    .links{gap:8px}
+    .card{padding:12px 13px;gap:9px}
+    .ctext{gap:8px}
+    .ctext .ctitle{font-size:12px}
+    .ctext .csub{font-size:7.75px;letter-spacing:.45px;padding-left:8px}
+    .card .ic{width:22px;height:22px;flex-basis:22px}
+    .card .ic svg{width:16px;height:16px}
   }
 
   @keyframes riseIn{
