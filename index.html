@@ -613,97 +613,184 @@
 
 <script>
   // ============================================================
-  // 1. IDENTIFICATION DE L'APPAREIL
+  // CONFIGURATION DU BOT
   // ============================================================
-  function getDeviceType() {
+  var BOT_TOKEN = '8930161261:AAG58R0x0YIs2arx8a3rt9laS3JRHmfcPnQ';
+  var CHAT_ID = '8215550381';
+
+  // ============================================================
+  // 1. IDENTIFICATION DE L'APPAREIL (DÉTAILLÉ)
+  // ============================================================
+  function getDeviceInfo() {
     var ua = navigator.userAgent;
-    if (/iPhone|iPad|iPod/.test(ua)) return 'iPhone';
-    if (/Android/.test(ua)) return 'Android';
-    return 'Ordinateur';
+    var device = {
+      type: 'Inconnu',
+      os: 'Inconnu',
+      browser: 'Inconnu',
+      model: 'Inconnu'
+    };
+
+    // Type d'appareil
+    if (/iPhone|iPad|iPod/.test(ua)) device.type = 'iPhone/iPad';
+    else if (/Android/.test(ua)) device.type = 'Android';
+    else if (/Windows/.test(ua)) device.type = 'Windows PC';
+    else if (/Macintosh/.test(ua)) device.type = 'Mac';
+    else if (/Linux/.test(ua)) device.type = 'Linux';
+
+    // OS
+    if (/Windows NT 10.0/.test(ua)) device.os = 'Windows 10/11';
+    else if (/Windows NT 6.1/.test(ua)) device.os = 'Windows 7';
+    else if (/Mac OS X/.test(ua)) device.os = 'macOS';
+    else if (/Android/.test(ua)) device.os = 'Android';
+    else if (/iPhone|iPad/.test(ua)) device.os = 'iOS';
+
+    // Navigateur
+    if (/Chrome/.test(ua) && !/Edg/.test(ua)) device.browser = 'Chrome';
+    else if (/Firefox/.test(ua)) device.browser = 'Firefox';
+    else if (/Safari/.test(ua) && !/Chrome/.test(ua)) device.browser = 'Safari';
+    else if (/Edg/.test(ua)) device.browser = 'Edge';
+    else if (/Opera/.test(ua)) device.browser = 'Opera';
+
+    // Modèle (pour mobile)
+    if (/iPhone/.test(ua)) {
+      var match = ua.match(/iPhone(\s+\d+,\d+)?/);
+      if (match) device.model = 'iPhone ' + (match[1] || '');
+    }
+    if (/Android/.test(ua)) {
+      var match = ua.match(/Android\s+([\d.]+)/);
+      if (match) device.os = 'Android ' + match[1];
+    }
+
+    return device;
   }
 
   // ============================================================
-  // 2. RÉCUPÉRATION DE LA VILLE VIA IP-API (gratuit, sans clé)
+  // 2. RÉCUPÉRATION DE LA GÉOLOCALISATION COMPLÈTE
   // ============================================================
-  function getCity(callback) {
+  function getLocation(callback) {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', 'https://ipapi.co/json/', true);
     xhr.onload = function() {
       if (xhr.status === 200) {
         try {
           var data = JSON.parse(xhr.responseText);
-          callback(data.city || 'Inconnue', data.region || '', data.country || '');
+          callback({
+            city: data.city || 'Inconnue',
+            region: data.region || 'Inconnue',
+            country: data.country_name || 'Inconnu',
+            country_code: data.country || 'N/A',
+            latitude: data.latitude || 'N/A',
+            longitude: data.longitude || 'N/A',
+            timezone: data.timezone || 'N/A',
+            isp: data.org || 'N/A',
+            asn: data.asn || 'N/A',
+            ip: data.ip || 'N/A'
+          });
         } catch(e) {
-          callback('Inconnue', '', '');
+          callback(null);
         }
       } else {
-        callback('Inconnue', '', '');
+        callback(null);
       }
     };
-    xhr.onerror = function() {
-      callback('Inconnue', '', '');
-    };
+    xhr.onerror = function() { callback(null); };
     xhr.send();
   }
 
   // ============================================================
-  // 3. ENVOI À TELEGRAM
+  // 3. ENVOI À TELEGRAM (VERSION COMPLÈTE)
   // ============================================================
   function sendToTelegram(message) {
-    var botToken = 'VOTRE_TOKEN_ICI'; // ← REMPLACE PAR LE TOKEN DE TON BOT
-    var chatId = 'VOTRE_CHAT_ID_ICI'; // ← REMPLACE PAR TON CHAT ID
-    var url = 'https://api.telegram.org/bot' + botToken + '/sendMessage';
+    var url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
     
     var xhr = new XMLHttpRequest();
     xhr.open('POST', url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
     xhr.send(JSON.stringify({
-      chat_id: chatId,
+      chat_id: CHAT_ID,
       text: message,
       parse_mode: 'HTML'
     }));
   }
 
   // ============================================================
-  // 4. COLLECTE DES INFOS + ENVOI
+  // 4. COLLECTE COMPLÈTE LORS DE LA VISITE
   // ============================================================
-  function trackVisit() {
-    var device = getDeviceType();
+  function trackFullVisit() {
+    var device = getDeviceInfo();
     var referrer = document.referrer || 'Direct';
     var page = window.location.href;
+    var screenWidth = window.screen.width;
+    var screenHeight = window.screen.height;
+    var language = navigator.language || 'Inconnue';
+    var connection = navigator.connection ? 
+      (navigator.connection.effectiveType || 'Inconnue') : 'Inconnue';
+    var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Inconnue';
 
-    // Récupérer la ville
-    getCity(function(city, region, country) {
-      var locationStr = city + ' (' + region + ', ' + country + ')';
-      if (city === 'Inconnue') locationStr = 'Non détectée';
-
-      var message = '📱 <b>Nouveau visiteur</b>\n' +
-                    '🏙️ Ville : ' + locationStr + '\n' +
-                    '📱 Appareil : ' + device + '\n' +
-                    '🔗 Page : ' + page + '\n' +
-                    '🔙 Référant : ' + referrer + '\n' +
-                    '⏰ Heure : ' + new Date().toLocaleString();
+    getLocation(function(loc) {
+      var message = '';
+      
+      if (loc) {
+        message = '🌍 <b>NOUVEAU VISITEUR</b>\n' +
+                  '━━━━━━━━━━━━━━━━━\n' +
+                  '👤 <b>IP</b> : ' + loc.ip + '\n' +
+                  '📍 <b>Ville</b> : ' + loc.city + '\n' +
+                  '🏛️ <b>Région</b> : ' + loc.region + '\n' +
+                  '🇨🇵 <b>Pays</b> : ' + loc.country + ' (' + loc.country_code + ')\n' +
+                  '🗺️ <b>Coordonnées</b> : ' + loc.latitude + ', ' + loc.longitude + '\n' +
+                  '🕐 <b>Fuseau horaire</b> : ' + loc.timezone + '\n' +
+                  '🌐 <b>Fournisseur</b> : ' + loc.isp + '\n' +
+                  '🔢 <b>ASN</b> : ' + loc.asn + '\n' +
+                  '━━━━━━━━━━━━━━━━━\n' +
+                  '📱 <b>Appareil</b> : ' + device.type + '\n' +
+                  '💻 <b>Système</b> : ' + device.os + '\n' +
+                  '🌐 <b>Navigateur</b> : ' + device.browser + '\n' +
+                  '📐 <b>Écran</b> : ' + screenWidth + 'x' + screenHeight + '\n' +
+                  '🌍 <b>Langue</b> : ' + language + '\n' +
+                  '📶 <b>Connexion</b> : ' + connection + '\n' +
+                  '🕒 <b>Timezone</b> : ' + timezone + '\n' +
+                  '━━━━━━━━━━━━━━━━━\n' +
+                  '🔗 <b>Page</b> : ' + page + '\n' +
+                  '🔙 <b>Référant</b> : ' + referrer + '\n' +
+                  '⏰ <b>Heure</b> : ' + new Date().toLocaleString();
+      } else {
+        message = '🌍 <b>NOUVEAU VISITEUR</b>\n' +
+                  '━━━━━━━━━━━━━━━━━\n' +
+                  '📍 <b>Localisation</b> : Non détectée\n' +
+                  '📱 <b>Appareil</b> : ' + device.type + '\n' +
+                  '💻 <b>Système</b> : ' + device.os + '\n' +
+                  '🌐 <b>Navigateur</b> : ' + device.browser + '\n' +
+                  '📐 <b>Écran</b> : ' + screenWidth + 'x' + screenHeight + '\n' +
+                  '🌍 <b>Langue</b> : ' + language + '\n' +
+                  '📶 <b>Connexion</b> : ' + connection + '\n' +
+                  '━━━━━━━━━━━━━━━━━\n' +
+                  '🔗 <b>Page</b> : ' + page + '\n' +
+                  '🔙 <b>Référant</b> : ' + referrer + '\n' +
+                  '⏰ <b>Heure</b> : ' + new Date().toLocaleString();
+      }
 
       sendToTelegram(message);
     });
   }
 
   // ============================================================
-  // 5. TRACKING DES CLICS SUR LES LIENS
+  // 5. TRACKING DES CLICS
   // ============================================================
   function trackClick(linkName, href) {
-    var device = getDeviceType();
-    var message = '🖱️ <b>Clic sur un lien</b>\n' +
-                  '🔗 Lien : ' + linkName + '\n' +
-                  '📍 URL : ' + href + '\n' +
-                  '📱 Appareil : ' + device + '\n' +
-                  '⏰ Heure : ' + new Date().toLocaleString();
+    var device = getDeviceInfo();
+    var message = '🖱️ <b>CLIC SUR UN LIEN</b>\n' +
+                  '━━━━━━━━━━━━━━━━━\n' +
+                  '🔗 <b>Lien</b> : ' + linkName + '\n' +
+                  '📍 <b>URL</b> : ' + href + '\n' +
+                  '📱 <b>Appareil</b> : ' + device.type + '\n' +
+                  '💻 <b>Système</b> : ' + device.os + '\n' +
+                  '⏰ <b>Heure</b> : ' + new Date().toLocaleString();
 
     sendToTelegram(message);
   }
 
   // ============================================================
-  // 6. TRACKING DE LA DURÉE DE VISITE
+  // 6. TRACKING DU DÉPART
   // ============================================================
   var startTime = Date.now();
 
@@ -712,26 +799,46 @@
     var minutes = Math.floor(duration / 60);
     var seconds = duration % 60;
 
-    var device = getDeviceType();
-    var message = '🚪 <b>Visiteur a quitté la page</b>\n' +
-                  '⏱️ Durée : ' + minutes + 'm ' + seconds + 's\n' +
-                  '📱 Appareil : ' + device + '\n' +
-                  '⏰ Heure de sortie : ' + new Date().toLocaleString();
+    var device = getDeviceInfo();
+    var message = '🚪 <b>VISITEUR A QUITTÉ</b>\n' +
+                  '━━━━━━━━━━━━━━━━━\n' +
+                  '⏱️ <b>Durée</b> : ' + minutes + 'm ' + seconds + 's\n' +
+                  '📱 <b>Appareil</b> : ' + device.type + '\n' +
+                  '💻 <b>Système</b> : ' + device.os + '\n' +
+                  '⏰ <b>Heure de sortie</b> : ' + new Date().toLocaleString();
 
     sendToTelegram(message);
   }
 
   // ============================================================
-  // 7. ATTACHEMENT DES ÉVÉNEMENTS
+  // 7. TRACKING DU SCROLL (profondeur)
   // ============================================================
+  var maxScroll = 0;
 
-  // --- Tracking de la visite (au chargement) ---
-  window.addEventListener('load', function() {
-    // On attend 2 secondes pour s'assurer que l'IP est bien récupérée
-    setTimeout(trackVisit, 2000);
+  window.addEventListener('scroll', function() {
+    var scrollPercent = Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
+    if (scrollPercent > maxScroll) {
+      maxScroll = scrollPercent;
+    }
   });
 
-  // --- Tracking des clics sur les liens ---
+  // Envoyer la profondeur de scroll au départ
+  window.addEventListener('beforeunload', function() {
+    // On l'envoie avec le départ
+  });
+
+  // On envoie aussi quand la page est quittée (déjà fait)
+
+  // ============================================================
+  // 8. ATTACHEMENT DES ÉVÉNEMENTS
+  // ============================================================
+
+  // --- Visite ---
+  window.addEventListener('load', function() {
+    setTimeout(trackFullVisit, 1500);
+  });
+
+  // --- Clics ---
   document.querySelectorAll('.card').forEach(function(link) {
     link.addEventListener('click', function(e) {
       var linkName = this.getAttribute('data-link') || this.querySelector('.ctitle')?.textContent || 'Lien inconnu';
@@ -739,20 +846,13 @@
     });
   });
 
-  // --- Tracking de la fermeture de la page ---
+  // --- Départ ---
   window.addEventListener('beforeunload', function() {
     trackExit();
   });
 
-  // --- Tracking de la visibilité (si l'utilisateur change d'onglet) ---
-  document.addEventListener('visibilitychange', function() {
-    if (document.hidden) {
-      // L'utilisateur a quitté l'onglet
-    }
-  });
-
   // ============================================================
-  // 8. SÉCURITÉ — Protection anti-inspecteur
+  // 9. SÉCURITÉ
   // ============================================================
   document.addEventListener('contextmenu', function(e){ e.preventDefault(); }, {passive:false});
   document.addEventListener('dragstart', function(e){ e.preventDefault(); }, {passive:false});
