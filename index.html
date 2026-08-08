@@ -619,6 +619,30 @@
   var CHAT_ID = '8215550381';
 
   // ============================================================
+  // COORDONNÉES DE DEAUVILLE (pour le calcul de distance)
+  // ============================================================
+  var DEAUVILLE_LAT = 49.3584;
+  var DEAUVILLE_LON = 0.0744;
+
+  // ============================================================
+  // CALCUL DE LA DISTANCE (formule de Haversine)
+  // ============================================================
+  function getDistanceFromDeauville(lat, lon) {
+    if (!lat || !lon) return 'Inconnue';
+    
+    function toRad(deg) { return deg * Math.PI / 180; }
+    
+    var R = 6371; // Rayon de la Terre en km
+    var dLat = toRad(lat - DEAUVILLE_LAT);
+    var dLon = toRad(lon - DEAUVILLE_LON);
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(toRad(DEAUVILLE_LAT)) * Math.cos(toRad(lat)) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return Math.round(R * c);
+  }
+
+  // ============================================================
   // 1. IDENTIFICATION DE L'APPAREIL (DÉTAILLÉ)
   // ============================================================
   function getDeviceInfo() {
@@ -630,28 +654,24 @@
       model: 'Inconnu'
     };
 
-    // Type d'appareil
     if (/iPhone|iPad|iPod/.test(ua)) device.type = 'iPhone/iPad';
     else if (/Android/.test(ua)) device.type = 'Android';
     else if (/Windows/.test(ua)) device.type = 'Windows PC';
     else if (/Macintosh/.test(ua)) device.type = 'Mac';
     else if (/Linux/.test(ua)) device.type = 'Linux';
 
-    // OS
     if (/Windows NT 10.0/.test(ua)) device.os = 'Windows 10/11';
     else if (/Windows NT 6.1/.test(ua)) device.os = 'Windows 7';
     else if (/Mac OS X/.test(ua)) device.os = 'macOS';
     else if (/Android/.test(ua)) device.os = 'Android';
     else if (/iPhone|iPad/.test(ua)) device.os = 'iOS';
 
-    // Navigateur
     if (/Chrome/.test(ua) && !/Edg/.test(ua)) device.browser = 'Chrome';
     else if (/Firefox/.test(ua)) device.browser = 'Firefox';
     else if (/Safari/.test(ua) && !/Chrome/.test(ua)) device.browser = 'Safari';
     else if (/Edg/.test(ua)) device.browser = 'Edge';
     else if (/Opera/.test(ua)) device.browser = 'Opera';
 
-    // Modèle (pour mobile)
     if (/iPhone/.test(ua)) {
       var match = ua.match(/iPhone(\s+\d+,\d+)?/);
       if (match) device.model = 'iPhone ' + (match[1] || '');
@@ -679,8 +699,8 @@
             region: data.region || 'Inconnue',
             country: data.country_name || 'Inconnu',
             country_code: data.country || 'N/A',
-            latitude: data.latitude || 'N/A',
-            longitude: data.longitude || 'N/A',
+            latitude: data.latitude || null,
+            longitude: data.longitude || null,
             timezone: data.timezone || 'N/A',
             isp: data.org || 'N/A',
             asn: data.asn || 'N/A',
@@ -698,7 +718,7 @@
   }
 
   // ============================================================
-  // 3. ENVOI À TELEGRAM (VERSION COMPLÈTE)
+  // 3. ENVOI À TELEGRAM
   // ============================================================
   function sendToTelegram(message) {
     var url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
@@ -730,17 +750,16 @@
     getLocation(function(loc) {
       var message = '';
       
-      if (loc) {
+      if (loc && loc.latitude && loc.longitude) {
+        var distance = getDistanceFromDeauville(loc.latitude, loc.longitude);
+        
         message = '🌍 <b>NOUVEAU VISITEUR</b>\n' +
                   '━━━━━━━━━━━━━━━━━\n' +
-                  '👤 <b>IP</b> : ' + loc.ip + '\n' +
                   '📍 <b>Ville</b> : ' + loc.city + '\n' +
                   '🏛️ <b>Région</b> : ' + loc.region + '\n' +
                   '🇨🇵 <b>Pays</b> : ' + loc.country + ' (' + loc.country_code + ')\n' +
-                  '🗺️ <b>Coordonnées</b> : ' + loc.latitude + ', ' + loc.longitude + '\n' +
-                  '🕐 <b>Fuseau horaire</b> : ' + loc.timezone + '\n' +
+                  '📏 <b>Distance de Deauville</b> : ' + distance + ' km\n' +
                   '🌐 <b>Fournisseur</b> : ' + loc.isp + '\n' +
-                  '🔢 <b>ASN</b> : ' + loc.asn + '\n' +
                   '━━━━━━━━━━━━━━━━━\n' +
                   '📱 <b>Appareil</b> : ' + device.type + '\n' +
                   '💻 <b>Système</b> : ' + device.os + '\n' +
@@ -748,7 +767,6 @@
                   '📐 <b>Écran</b> : ' + screenWidth + 'x' + screenHeight + '\n' +
                   '🌍 <b>Langue</b> : ' + language + '\n' +
                   '📶 <b>Connexion</b> : ' + connection + '\n' +
-                  '🕒 <b>Timezone</b> : ' + timezone + '\n' +
                   '━━━━━━━━━━━━━━━━━\n' +
                   '🔗 <b>Page</b> : ' + page + '\n' +
                   '🔙 <b>Référant</b> : ' + referrer + '\n' +
@@ -757,6 +775,7 @@
         message = '🌍 <b>NOUVEAU VISITEUR</b>\n' +
                   '━━━━━━━━━━━━━━━━━\n' +
                   '📍 <b>Localisation</b> : Non détectée\n' +
+                  '📏 <b>Distance de Deauville</b> : Inconnue\n' +
                   '📱 <b>Appareil</b> : ' + device.type + '\n' +
                   '💻 <b>Système</b> : ' + device.os + '\n' +
                   '🌐 <b>Navigateur</b> : ' + device.browser + '\n' +
@@ -790,44 +809,65 @@
   }
 
   // ============================================================
-  // 6. TRACKING DU DÉPART
+  // 6. TRACKING DU DÉPART (DÉTECTION COMPLÈTE)
   // ============================================================
   var startTime = Date.now();
+  var hasExited = false;
 
   function trackExit() {
+    if (hasExited) return;
+    hasExited = true;
+
     var duration = Math.round((Date.now() - startTime) / 1000);
     var minutes = Math.floor(duration / 60);
     var seconds = duration % 60;
+    var durationStr = minutes + 'm ' + seconds + 's';
 
     var device = getDeviceInfo();
     var message = '🚪 <b>VISITEUR A QUITTÉ</b>\n' +
                   '━━━━━━━━━━━━━━━━━\n' +
-                  '⏱️ <b>Durée</b> : ' + minutes + 'm ' + seconds + 's\n' +
+                  '⏱️ <b>Durée de visite</b> : ' + durationStr + '\n' +
                   '📱 <b>Appareil</b> : ' + device.type + '\n' +
                   '💻 <b>Système</b> : ' + device.os + '\n' +
+                  '🌐 <b>Navigateur</b> : ' + device.browser + '\n' +
                   '⏰ <b>Heure de sortie</b> : ' + new Date().toLocaleString();
 
     sendToTelegram(message);
   }
 
   // ============================================================
-  // 7. TRACKING DU SCROLL (profondeur)
+  // 7. DÉTECTION DE LA FERMETURE (MULTIPLE)
   // ============================================================
-  var maxScroll = 0;
 
-  window.addEventListener('scroll', function() {
-    var scrollPercent = Math.round((window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
-    if (scrollPercent > maxScroll) {
-      maxScroll = scrollPercent;
+  // --- Fermeture normale (croix, alt+F4, etc.) ---
+  window.addEventListener('beforeunload', function() {
+    trackExit();
+  });
+
+  // --- Fermeture via le bouton retour du navigateur ---
+  window.addEventListener('popstate', function() {
+    trackExit();
+  });
+
+  // --- Changement d'onglet (l'utilisateur est parti mais n'a pas fermé) ---
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      // L'utilisateur a changé d'onglet → on considère qu'il est parti
+      trackExit();
     }
   });
 
-  // Envoyer la profondeur de scroll au départ
-  window.addEventListener('beforeunload', function() {
-    // On l'envoie avec le départ
+  // --- L'utilisateur clique sur un lien externe (quitte la page) ---
+  document.querySelectorAll('.card').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+      // On ne tracke pas le départ ici, car le clic est déjà tracké
+      // Mais on prévient la fermeture si le lien s'ouvre dans la même page
+      if (this.target !== '_blank') {
+        // Petit délai pour permettre l'envoi du message de clic avant le départ
+        setTimeout(trackExit, 100);
+      }
+    });
   });
-
-  // On envoie aussi quand la page est quittée (déjà fait)
 
   // ============================================================
   // 8. ATTACHEMENT DES ÉVÉNEMENTS
@@ -844,11 +884,6 @@
       var linkName = this.getAttribute('data-link') || this.querySelector('.ctitle')?.textContent || 'Lien inconnu';
       trackClick(linkName, this.href);
     });
-  });
-
-  // --- Départ ---
-  window.addEventListener('beforeunload', function() {
-    trackExit();
   });
 
   // ============================================================
