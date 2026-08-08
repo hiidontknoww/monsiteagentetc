@@ -444,6 +444,99 @@
     }
   }
 
+
+  /* =========================================================
+     MOBILE — PLUS D'ESPACE VERTICAL, MÊMES DIMENSIONS
+  ========================================================= */
+
+  @media (max-width:420px){
+    .pname{
+      margin-bottom:38px;
+    }
+
+    .links{
+      gap:11px;
+    }
+
+    .card{
+      padding-top:11px;
+      padding-bottom:11px;
+    }
+  }
+
+  @media (max-width:420px) and (max-height:720px){
+    .pname{
+      margin-bottom:28px;
+    }
+
+    .links{
+      gap:8px;
+    }
+
+    .card{
+      padding-top:9px;
+      padding-bottom:9px;
+    }
+  }
+
+  @media (min-width:421px) and (max-width:680px){
+    .pname{
+      margin-bottom:38px;
+    }
+
+    .links{
+      gap:10px;
+    }
+  }
+
+
+  /* =========================================================
+     MOBILE — ESPACEMENT PLUS LARGE ENTRE CHAQUE ONGLET
+  ========================================================= */
+
+  @media (max-width:420px){
+    .links{
+      gap:16px;
+    }
+  }
+
+  @media (max-width:420px) and (max-height:720px){
+    .links{
+      gap:12px;
+    }
+  }
+
+  @media (min-width:421px) and (max-width:680px){
+    .links{
+      gap:14px;
+    }
+  }
+
+
+  /* =========================================================
+     ESPACEMENT MOBILE — VERSION TRÈS AÉRÉE
+  ========================================================= */
+
+  @media (max-width:680px){
+    .links{
+      gap:24px !important;
+    }
+  }
+
+  @media (max-width:420px){
+    .links{
+      gap:26px !important;
+    }
+  }
+
+  /* On neutralise les règles précédentes qui réduisaient l'espace
+     sur les écrans peu hauts. */
+  @media (max-width:680px) and (max-height:720px){
+    .links{
+      gap:20px !important;
+    }
+  }
+
 </style>
 </head>
 <body>
