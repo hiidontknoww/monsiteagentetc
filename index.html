@@ -662,6 +662,186 @@
     }
   }
 
+
+  /* =========================================================
+     FINAL MOBILE POLISH — layout + premium micro-interactions
+  ========================================================= */
+
+  .wrap{
+    position:relative;
+    z-index:2;
+    width:min(100%, 500px);
+    animation:pageIn .9s cubic-bezier(.16,1,.3,1) both;
+  }
+
+  @keyframes pageIn{
+    from{opacity:0;transform:translate3d(0,18px,0) scale(.985)}
+    to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+  }
+
+  .card{
+    position:relative;
+    overflow:hidden;
+    will-change:transform;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  /* Reflet qui traverse chaque bouton au survol / toucher */
+  .card::after{
+    content:"";
+    position:absolute;
+    top:-80%;
+    left:-70%;
+    width:38%;
+    height:260%;
+    background:linear-gradient(
+      90deg,
+      transparent,
+      rgba(255,255,255,.72),
+      transparent
+    );
+    transform:rotate(18deg) translateX(-120%);
+    opacity:0;
+    pointer-events:none;
+    transition:transform .65s cubic-bezier(.16,1,.3,1),opacity .25s ease;
+  }
+
+  .card:hover::after,
+  .card:focus-visible::after{
+    opacity:1;
+    transform:rotate(18deg) translateX(520%);
+  }
+
+  .card:hover{
+    transform:translateY(-3px) scale(1.006);
+  }
+
+  .card:active{
+    transform:translateY(-1px) scale(.975);
+    transition-duration:.08s;
+  }
+
+  .card .ic{
+    transition:
+      transform .45s cubic-bezier(.16,1,.3,1),
+      color .25s ease,
+      background .25s ease;
+  }
+
+  .card:hover .ic,
+  .card:focus-visible .ic{
+    transform:scale(1.12) rotate(-4deg);
+  }
+
+  .ctext .ctitle{
+    transition:transform .35s cubic-bezier(.16,1,.3,1);
+  }
+
+  .card:hover .ctitle{
+    transform:translateX(2px);
+  }
+
+  /* Les boutons restent visiblement plus hauts sur téléphone,
+     tout en laissant le badge du bas totalement dégagé. */
+  @media (max-width:680px){
+    body{
+      align-items:flex-start;
+      padding-top:max(42px, calc(env(safe-area-inset-top) + 28px));
+      padding-bottom:max(110px, calc(env(safe-area-inset-bottom) + 96px));
+      overflow-y:auto;
+      overflow-x:hidden;
+    }
+
+    .wrap{
+      transform:translateY(-6px);
+    }
+
+    .pname{
+      margin-bottom:30px !important;
+    }
+
+    .links{
+      gap:12px !important;
+    }
+
+    .card{
+      min-height:54px;
+    }
+  }
+
+  @media (max-width:420px){
+    body{
+      padding-top:max(34px, calc(env(safe-area-inset-top) + 22px));
+      padding-bottom:max(104px, calc(env(safe-area-inset-bottom) + 88px));
+    }
+
+    .wrap{
+      transform:translateY(-10px);
+    }
+
+    .pname{
+      margin-bottom:28px !important;
+    }
+
+    .links{
+      gap:11px !important;
+    }
+
+    .card{
+      min-height:53px;
+      border-radius:14px;
+      box-shadow:
+        0 2px 0 rgba(0,0,0,.018),
+        0 7px 20px rgba(0,0,0,.025),
+        inset 0 1px rgba(255,255,255,.98);
+    }
+  }
+
+  /* Sur mobile, le badge descend légèrement et reste compact. */
+  @media (max-width:420px){
+    .hosting-badge{
+      bottom:max(7px, calc(env(safe-area-inset-bottom) + 5px));
+      padding:8px 11px 8px 9px;
+      opacity:.92;
+      transform:translateX(-50%) scale(.96);
+    }
+
+    .hosting-text{
+      font-size:8.5px;
+    }
+  }
+
+  /* Animation d'arrivée des boutons, plus fluide et plus premium. */
+  .links .card{
+    animation:cardReveal .65s cubic-bezier(.16,1,.3,1) both;
+  }
+
+  @keyframes cardReveal{
+    from{
+      opacity:0;
+      transform:translate3d(0,16px,0) scale(.985);
+      filter:blur(3px);
+    }
+    to{
+      opacity:1;
+      transform:translate3d(0,0,0) scale(1);
+      filter:blur(0);
+    }
+  }
+
+  .links .card:nth-child(1){animation-delay:.25s}
+  .links .card:nth-child(2){animation-delay:.31s}
+  .links .card:nth-child(3){animation-delay:.37s}
+  .links .card:nth-child(4){animation-delay:.43s}
+  .links .card:nth-child(5){animation-delay:.49s}
+  .links .card:nth-child(6){animation-delay:.55s}
+  .links .card:nth-child(7){animation-delay:.61s}
+
+  @media (prefers-reduced-motion:reduce){
+    .wrap,.links .card{animation:none !important}
+    .card::after{display:none}
+  }
+
 </style>
 </head>
 <body>
