@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="fr">
 <head>
 <meta charset="utf-8">
@@ -37,10 +38,10 @@ body {
   position: fixed;
   inset: 0;
   padding:
-    max(82px, env(safe-area-inset-top) + 58px)
-    max(12px, env(safe-area-inset-right))
-    max(86px, env(safe-area-inset-bottom) + 52px)
-    max(12px, env(safe-area-inset-left));
+    max(72px, env(safe-area-inset-top) + 48px)
+    max(14px, env(safe-area-inset-right))
+    max(76px, env(safe-area-inset-bottom) + 42px)
+    max(14px, env(safe-area-inset-left));
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -52,24 +53,24 @@ body {
 }
 
 .wrap {
-  width: min(100%, 500px);
+  width: min(100%, 460px);
 }
 
 .links {
   display: flex;
   flex-direction: column;
-  gap: 17px;
+  gap: 10px;
 }
 
 .card {
   width: 100%;
-  min-height: 61px;
+  min-height: 47px;
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 13px 14px;
-  border: 1px solid #000000;
-  border-radius: 15px;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid #dedede;
+  border-radius: 11px;
   background: #ffffff;
   color: #111111;
   text-decoration: none;
@@ -77,12 +78,15 @@ body {
   -webkit-tap-highlight-color: transparent;
   -webkit-user-drag: none;
   touch-action: manipulation;
+  transition:
+    border-color .15s ease,
+    background .15s ease;
 }
 
 .card:hover,
 .card:active {
-  border-color: #000000;
-  background: #ffffff;
+  border-color: #cfcfcf;
+  background: #fafafa;
 }
 
 .card:focus,
@@ -91,28 +95,26 @@ body {
 }
 
 .ic {
-  width: 25px;
-  height: 25px;
-  flex: 0 0 25px;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #000000;
+  color: #111111;
 }
 
 .ic svg {
-  width: 17px;
-  height: 17px;
+  width: 16px;
+  height: 16px;
   display: block;
 }
 
 .ctext {
   min-width: 0;
   flex: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: 9px;
 }
 
 .ctitle {
@@ -120,41 +122,31 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 600;
+  letter-spacing: .05px;
   color: #111111;
 }
 
 .csub {
-  max-width: 170px;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding-left: 10px;
-  border-left: 1px solid #000000;
-  color: rgba(0, 0, 0, 0.62);
-  font-size: 7.5px;
-  font-weight: 600;
-  letter-spacing: .4px;
-  text-transform: uppercase;
+  display: none;
 }
 
 .hosting {
   position: fixed;
   left: 50%;
-  bottom: max(12px, env(safe-area-inset-bottom) + 6px);
+  bottom: max(10px, env(safe-area-inset-bottom) + 5px);
   transform: translateX(-50%);
   width: max-content;
-  max-width: calc(100vw - 20px);
-  padding: 8px 11px;
-  border: 1px solid #000000;
+  max-width: calc(100vw - 24px);
+  padding: 6px 9px;
+  border: 1px solid #e1e1e1;
   border-radius: 999px;
   background: #ffffff;
-  color: #000000;
-  font-size: 8px;
-  font-weight: 600;
-  letter-spacing: .15px;
+  color: #777777;
+  font-size: 7px;
+  font-weight: 500;
+  letter-spacing: .1px;
   text-align: center;
   white-space: nowrap;
   box-shadow: none;
@@ -164,55 +156,72 @@ body {
 }
 
 @media (max-width: 430px) {
+  body {
+    padding:
+      max(64px, env(safe-area-inset-top) + 42px)
+      max(13px, env(safe-area-inset-right))
+      max(70px, env(safe-area-inset-bottom) + 38px)
+      max(13px, env(safe-area-inset-left));
+  }
+
+  .wrap {
+    width: 100%;
+  }
+
   .links {
-    gap: 15px;
+    gap: 9px;
   }
 
   .card {
-    min-height: 59px;
-    padding: 12px 13px;
-    border-radius: 14px;
+    min-height: 45px;
+    padding: 8px 11px;
+    border-radius: 10px;
+  }
+
+  .ic {
+    width: 21px;
+    height: 21px;
+    flex-basis: 21px;
+  }
+
+  .ic svg {
+    width: 15px;
+    height: 15px;
   }
 
   .ctitle {
-    font-size: 11.8px;
-  }
-
-  .csub {
-    max-width: 125px;
-    font-size: 6.8px;
-    padding-left: 8px;
+    font-size: 11px;
   }
 
   .hosting {
-    font-size: 7.7px;
+    font-size: 6.8px;
   }
 }
 
 @media (max-width: 360px) {
   body {
-    padding-top: max(64px, env(safe-area-inset-top) + 44px);
+    padding-top: max(58px, env(safe-area-inset-top) + 38px);
   }
 
   .links {
-    gap: 13px;
+    gap: 8px;
   }
 
   .card {
-    min-height: 57px;
-    padding: 11px 12px;
+    min-height: 43px;
+    padding: 8px 10px;
   }
 
   .ctitle {
-    font-size: 11.3px;
+    font-size: 10.5px;
   }
 
-  .csub {
-    max-width: 105px;
-    font-size: 6.4px;
+  .hosting {
+    font-size: 6.5px;
   }
 }
 </style>
+
 </head>
 
 <body>
@@ -222,7 +231,7 @@ body {
 
 <a class="card" href="https://elitecrypto.lat" target="_blank" rel="noreferrer" data-link="Elite Crypto">
   <span class="ic">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="9.5"></circle>
       <ellipse cx="12" cy="12" rx="4" ry="9.5"></ellipse>
       <line x1="2.5" y1="12" x2="21.5" y2="12"></line>
@@ -233,95 +242,76 @@ body {
 
   <span class="ctext">
     <span class="ctitle">Elite Crypto</span>
-    <span class="csub">Groupe crypto privé</span>
   </span>
 </a>
 
-<a class="card" href="https://www.instagram.com/16parismanagement" target="_blank" rel="noreferrer" data-link="@16parismanagement">
+<a class="card" href="https://www.instagram.com/16parismanagement" target="_blank" rel="noreferrer" data-link="Agence de mannequins">
   <span class="ic">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <rect x="2.5" y="2.5" width="19" height="19" rx="5.5"></rect>
       <circle cx="12" cy="12" r="4.4"></circle>
-      <circle cx="17.7" cy="6.3" r="1.3" fill="#000000" stroke="none"></circle>
+      <circle cx="17.7" cy="6.3" r="1.3" fill="#111111" stroke="none"></circle>
     </svg>
   </span>
 
   <span class="ctext">
-    <span class="ctitle">@16parismanagement</span>
-    <span class="csub">Agence de mannequins</span>
+    <span class="ctitle">Agence de mannequins</span>
   </span>
 </a>
 
-<a class="card" href="https://www.instagram.com/lesnouveauxperesfondateurs" target="_blank" rel="noreferrer" data-link="@lesnouveauxperesfondateurs">
+<a class="card" href="https://www.instagram.com/lesnouveauxperesfondateurs" target="_blank" rel="noreferrer" data-link="Parti politique">
   <span class="ic">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <rect x="2.5" y="2.5" width="19" height="19" rx="5.5"></rect>
       <circle cx="12" cy="12" r="4.4"></circle>
-      <circle cx="17.7" cy="6.3" r="1.3" fill="#000000" stroke="none"></circle>
+      <circle cx="17.7" cy="6.3" r="1.3" fill="#111111" stroke="none"></circle>
     </svg>
   </span>
 
   <span class="ctext">
-    <span class="ctitle">@lesnouveauxperesfondateurs</span>
-    <span class="csub">Parti politique</span>
+    <span class="ctitle">Parti politique</span>
   </span>
 </a>
 
-<a class="card" href="https://www.instagram.com/losnuevospadresfundadores" target="_blank" rel="noreferrer" data-link="@losnuevospadresfundadores">
+<a class="card" href="https://www.instagram.com/losnuevospadresfundadores" target="_blank" rel="noreferrer" data-link="Parti politique">
   <span class="ic">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <rect x="2.5" y="2.5" width="19" height="19" rx="5.5"></rect>
       <circle cx="12" cy="12" r="4.4"></circle>
-      <circle cx="17.7" cy="6.3" r="1.3" fill="#000000" stroke="none"></circle>
+      <circle cx="17.7" cy="6.3" r="1.3" fill="#111111" stroke="none"></circle>
     </svg>
   </span>
 
   <span class="ctext">
-    <span class="ctitle">@losnuevospadresfundadores</span>
-    <span class="csub">Parti politique</span>
+    <span class="ctitle">Parti politique</span>
   </span>
 </a>
 
-<a class="card" href="https://www.instagram.com/inuovipadrifondatori" target="_blank" rel="noreferrer" data-link="@inuovipadrifondatori">
+<a class="card" href="https://www.instagram.com/inuovipadrifondatori" target="_blank" rel="noreferrer" data-link="Parti politique">
   <span class="ic">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <rect x="2.5" y="2.5" width="19" height="19" rx="5.5"></rect>
       <circle cx="12" cy="12" r="4.4"></circle>
-      <circle cx="17.7" cy="6.3" r="1.3" fill="#000000" stroke="none"></circle>
+      <circle cx="17.7" cy="6.3" r="1.3" fill="#111111" stroke="none"></circle>
     </svg>
   </span>
 
   <span class="ctext">
-    <span class="ctitle">@inuovipadrifondatori</span>
-    <span class="csub">Parti politique</span>
+    <span class="ctitle">Parti politique</span>
   </span>
 </a>
 
-<a class="card" href="https://www.instagram.com/vrqjr" target="_blank" rel="noreferrer" data-link="@vrqjr">
+<a class="card" href="https://www.instagram.com/vrqjr" target="_blank" rel="noreferrer" data-link="Instagram personnel">
   <span class="ic">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <rect x="2.5" y="2.5" width="19" height="19" rx="5.5"></rect>
       <circle cx="12" cy="12" r="4.4"></circle>
-      <circle cx="17.7" cy="6.3" r="1.3" fill="#000000" stroke="none"></circle>
+      <circle cx="17.7" cy="6.3" r="1.3" fill="#111111" stroke="none"></circle>
     </svg>
   </span>
 
   <span class="ctext">
-    <span class="ctitle">@vrqjr</span>
-    <span class="csub">Compte personnel</span>
-  </span>
-</a>
-
-<a class="card" href="https://www.tiktok.com/@vrqjr" target="_blank" rel="noreferrer" data-link="TikTok @vrqjr">
-  <span class="ic">
-    <svg viewBox="0 0 24 24" fill="#000000" stroke="none" aria-hidden="true">
-      <path d="M14.25 3c.2 1.62 1.12 2.95 2.58 3.72.72.38 1.45.57 2.17.58v3.02a7.6 7.6 0 0 1-4.72-1.63v6.18c0 3.74-2.98 6.13-6.13 6.13A5.16 5.16 0 0 1 3 15.84c0-3.2 2.75-5.66 5.9-5.09v3.1a2.19 2.19 0 0 0-2.9 2.07 2.18 2.18 0 0 0 2.18 2.18c1.33 0 2.15-.95 2.15-2.55V3h3.92Z"/>
-    </svg>
-  </span>
-
-  <span class="ctext">
-    <span class="ctitle">@vrqjr</span>
-    <span class="csub">Compte personnel</span>
+    <span class="ctitle">Instagram personnel</span>
   </span>
 </a>
 
